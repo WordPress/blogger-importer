@@ -4,7 +4,7 @@ Donate link:
 Tags: importer, blogger
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.1
+Stable tag: 0.2
 
 Import posts, comments, and users from a Blogger blog.
 
