@@ -1,0 +1,252 @@
+# Translation of the WordPress plugin Blogger Importer 0.2 by wordpressdotorg.
+# Copyright (C) 2010 wordpressdotorg
+# This file is distributed under the same license as the Blogger Importer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Blogger Importer 0.2\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/blogger-importer\n"
+"POT-Creation-Date: 2010-06-01 13:26+0300\n"
+"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: blogger-importer.php:68
+msgid "Import Blogger"
+msgstr ""
+
+#: blogger-importer.php:69
+msgid ""
+"Howdy! This importer allows you to import posts and comments from your "
+"Blogger account into your WordPress site."
+msgstr ""
+
+#: blogger-importer.php:70
+msgid ""
+"To use this importer, you must have a Google account and an upgraded (New, "
+"was Beta) blog hosted on blogspot.com or a custom domain (not FTP)."
+msgstr ""
+
+#: blogger-importer.php:71
+msgid ""
+"The first thing you need to do is tell Blogger to let WordPress access your "
+"account. You will be sent back here after providing authorization."
+msgstr ""
+
+#: blogger-importer.php:72
+msgid "Authorize"
+msgstr ""
+
+#: blogger-importer.php:111
+msgid "Authorization failed"
+msgstr ""
+
+#: blogger-importer.php:112
+msgid ""
+"Something went wrong. If the problem persists, send this info to support:"
+msgstr ""
+
+#: blogger-importer.php:169
+msgid "Trouble signing in"
+msgstr ""
+
+#: blogger-importer.php:170
+msgid "We were not able to gain access to your account. Try starting over."
+msgstr ""
+
+#: blogger-importer.php:203
+msgid "No blogs found"
+msgstr ""
+
+#: blogger-importer.php:204
+msgid ""
+"We were able to log in but there were no blogs. Try a different account next "
+"time."
+msgstr ""
+
+#: blogger-importer.php:211
+msgid "Import"
+msgstr ""
+
+#: blogger-importer.php:212
+msgid "Continue"
+msgstr ""
+
+#: blogger-importer.php:213
+msgid "Importing..."
+msgstr ""
+
+#: blogger-importer.php:214
+msgid "Set Authors"
+msgstr ""
+
+#: blogger-importer.php:215
+msgid "Preparing author mapping form..."
+msgstr ""
+
+#: blogger-importer.php:216
+msgid "Final Step: Author Mapping"
+msgstr ""
+
+#: blogger-importer.php:217
+msgid "Nothing was imported. Had you already imported this blog?"
+msgstr ""
+
+#: blogger-importer.php:219
+msgid "Blogger Blogs"
+msgstr ""
+
+#: blogger-importer.php:220
+msgid "Blog Name"
+msgstr ""
+
+#: blogger-importer.php:221
+msgid "Blog URL"
+msgstr ""
+
+#: blogger-importer.php:222
+msgid "The Magic Button"
+msgstr ""
+
+#: blogger-importer.php:223
+msgid "Posts"
+msgstr ""
+
+#: blogger-importer.php:224
+msgid "Comments"
+msgstr ""
+
+#: blogger-importer.php:225
+msgid ""
+"This feature requires Javascript but it seems to be disabled. Please enable "
+"Javascript and then reload this page. Don&#8217;t worry, you can turn it "
+"back off when you&#8217;re done."
+msgstr ""
+
+#: blogger-importer.php:680
+#, php-format
+msgid ""
+"All posts were imported with the current user as author. Use this form to "
+"move each Blogger user&#8217;s posts to a different WordPress user. You may "
+"<a href=\"%s\">add users</a> and then return to this page and complete the "
+"user mapping. This form may be used as many times as you like until you "
+"activate the &#8220;Restart&#8221; function below."
+msgstr ""
+
+#: blogger-importer.php:681
+msgid "Author mapping"
+msgstr ""
+
+#: blogger-importer.php:683
+msgid "Blogger username"
+msgstr ""
+
+#: blogger-importer.php:684
+msgid "WordPress login"
+msgstr ""
+
+#: blogger-importer.php:685
+msgid "Save Changes"
+msgstr ""
+
+#: blogger-importer.php:742
+msgid "Could not connect to https://www.google.com"
+msgstr ""
+
+#: blogger-importer.php:743
+msgid ""
+"There was a problem opening a secure connection to Google. This is what went "
+"wrong:"
+msgstr ""
+
+#: blogger-importer.php:754
+#, php-format
+msgid "Could not connect to %s"
+msgstr ""
+
+#: blogger-importer.php:755
+msgid ""
+"There was a problem opening a connection to Blogger. This is what went wrong:"
+msgstr ""
+
+#: blogger-importer.php:821
+msgid "Congratulations!"
+msgstr ""
+
+#: blogger-importer.php:821
+msgid ""
+"Now that you have imported your Blogger blog into WordPress, what are you "
+"going to do? Here are some suggestions:"
+msgstr ""
+
+#: blogger-importer.php:821
+msgid "That was hard work! Take a break."
+msgstr ""
+
+#: blogger-importer.php:823
+msgid ""
+"In case you haven&#8217;t done it already, you can import the posts from "
+"your other blogs:"
+msgstr ""
+
+#: blogger-importer.php:825
+#, php-format
+msgid ""
+"Go to <a href=\"%s\" target=\"%s\">Authors &amp; Users</a>, where you can "
+"modify the new user(s) or delete them. If you want to make all of the "
+"imported posts yours, you will be given that option when you delete the new "
+"authors."
+msgstr ""
+
+#: blogger-importer.php:826
+msgid "For security, click the link below to reset this importer."
+msgstr ""
+
+#: blogger-importer.php:857
+msgid "Restart"
+msgstr ""
+
+#: blogger-importer.php:858
+msgid ""
+"We have saved some information about your Blogger account in your WordPress "
+"database. Clearing this information will allow you to start over. Restarting "
+"will not affect any posts you have already imported. If you attempt to re-"
+"import a blog, duplicate posts and comments will be skipped."
+msgstr ""
+
+#: blogger-importer.php:859
+msgid "Clear account information"
+msgstr ""
+
+#: blogger-importer.php:909
+msgid "Blogger"
+msgstr ""
+
+#: blogger-importer.php:909
+msgid "Import posts, comments, and users from a Blogger blog."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Blogger Importer"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://wordpress.org/extend/plugins/blogger-importer/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Import posts, comments, tags, and attachments from a Blogger blog."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "wordpressdotorg"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://wordpress.org/"
+msgstr ""

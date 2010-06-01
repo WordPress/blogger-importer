@@ -65,11 +65,11 @@ class Blogger_Import extends WP_Importer {
 	function greet() {
 		$next_url = get_option('siteurl') . '/wp-admin/index.php?import=blogger&amp;noheader=true';
 		$auth_url = "https://www.google.com/accounts/AuthSubRequest";
-		$title = __('Import Blogger');
-		$welcome = __('Howdy! This importer allows you to import posts and comments from your Blogger account into your WordPress site.');
-		$prereqs = __('To use this importer, you must have a Google account and an upgraded (New, was Beta) blog hosted on blogspot.com or a custom domain (not FTP).');
-		$stepone = __('The first thing you need to do is tell Blogger to let WordPress access your account. You will be sent back here after providing authorization.');
-		$auth = esc_attr__('Authorize');
+		$title = __('Import Blogger', 'blogger-importer');
+		$welcome = __('Howdy! This importer allows you to import posts and comments from your Blogger account into your WordPress site.', 'blogger-importer');
+		$prereqs = __('To use this importer, you must have a Google account and an upgraded (New, was Beta) blog hosted on blogspot.com or a custom domain (not FTP).', 'blogger-importer');
+		$stepone = __('The first thing you need to do is tell Blogger to let WordPress access your account. You will be sent back here after providing authorization.', 'blogger-importer');
+		$auth = esc_attr__('Authorize', 'blogger-importer');
 
 		echo "
 		<div class='wrap'>
@@ -108,8 +108,8 @@ class Blogger_Import extends WP_Importer {
 		preg_match( '/token=([-_0-9a-z]+)/i', $response, $matches );
 		if ( empty( $matches[1] ) ) {
 			$this->uh_oh(
-				__( 'Authorization failed' ),
-				__( 'Something went wrong. If the problem persists, send this info to support:' ),
+				__( 'Authorization failed' , 'blogger-importer'),
+				__( 'Something went wrong. If the problem persists, send this info to support:' , 'blogger-importer'),
 				htmlspecialchars($response)
 			);
 			return false;
@@ -166,8 +166,8 @@ class Blogger_Import extends WP_Importer {
 					return $this->show_blogs($iter + 1);
 				} else {
 					$this->uh_oh(
-						__('Trouble signing in'),
-						__('We were not able to gain access to your account. Try starting over.'),
+						__('Trouble signing in', 'blogger-importer'),
+						__('We were not able to gain access to your account. Try starting over.', 'blogger-importer'),
 						''
 					);
 					return false;
@@ -200,29 +200,29 @@ class Blogger_Import extends WP_Importer {
 
 			if ( empty( $this->blogs ) ) {
 				$this->uh_oh(
-					__('No blogs found'),
-					__('We were able to log in but there were no blogs. Try a different account next time.'),
+					__('No blogs found', 'blogger-importer'),
+					__('We were able to log in but there were no blogs. Try a different account next time.', 'blogger-importer'),
 					''
 				);
 				return false;
 			}
 		}
 //echo '<pre>'.print_r($this,1).'</pre>';
-		$start    = esc_js( __('Import') );
-		$continue = esc_js( __('Continue') );
-		$stop     = esc_js( __('Importing...') );
-		$authors  = esc_js( __('Set Authors') );
-		$loadauth = esc_js( __('Preparing author mapping form...') );
-		$authhead = esc_js( __('Final Step: Author Mapping') );
-		$nothing  = esc_js( __('Nothing was imported. Had you already imported this blog?') );
+		$start    = esc_js( __('Import', 'blogger-importer') );
+		$continue = esc_js( __('Continue', 'blogger-importer') );
+		$stop     = esc_js( __('Importing...', 'blogger-importer') );
+		$authors  = esc_js( __('Set Authors', 'blogger-importer') );
+		$loadauth = esc_js( __('Preparing author mapping form...', 'blogger-importer') );
+		$authhead = esc_js( __('Final Step: Author Mapping', 'blogger-importer') );
+		$nothing  = esc_js( __('Nothing was imported. Had you already imported this blog?', 'blogger-importer') );
 		$stopping = ''; //Missing String used below.
-		$title    = __('Blogger Blogs');
-		$name     = __('Blog Name');
-		$url      = __('Blog URL');
-		$action   = __('The Magic Button');
-		$posts    = __('Posts');
-		$comments = __('Comments');
-		$noscript = __('This feature requires Javascript but it seems to be disabled. Please enable Javascript and then reload this page. Don&#8217;t worry, you can turn it back off when you&#8217;re done.');
+		$title    = __('Blogger Blogs', 'blogger-importer');
+		$name     = __('Blog Name', 'blogger-importer');
+		$url      = __('Blog URL', 'blogger-importer');
+		$action   = __('The Magic Button', 'blogger-importer');
+		$posts    = __('Posts', 'blogger-importer');
+		$comments = __('Comments', 'blogger-importer');
+		$noscript = __('This feature requires Javascript but it seems to be disabled. Please enable Javascript and then reload this page. Don&#8217;t worry, you can turn it back off when you&#8217;re done.', 'blogger-importer');
 
 		$interval = STATUS_INTERVAL * 1000;
 
@@ -677,12 +677,12 @@ class Blogger_Import extends WP_Importer {
 			$this->save_vars();
 		}
 
-		$directions = sprintf( __('All posts were imported with the current user as author. Use this form to move each Blogger user&#8217;s posts to a different WordPress user. You may <a href="%s">add users</a> and then return to this page and complete the user mapping. This form may be used as many times as you like until you activate the &#8220;Restart&#8221; function below.'), 'users.php' );
-		$heading = __('Author mapping');
+		$directions = sprintf( __('All posts were imported with the current user as author. Use this form to move each Blogger user&#8217;s posts to a different WordPress user. You may <a href="%s">add users</a> and then return to this page and complete the user mapping. This form may be used as many times as you like until you activate the &#8220;Restart&#8221; function below.', 'blogger-importer'), 'users.php' );
+		$heading = __('Author mapping', 'blogger-importer');
 		$blogtitle = "{$blog['title']} ({$blog['host']})";
-		$mapthis = __('Blogger username');
-		$tothis = __('WordPress login');
-		$submit = esc_js( __('Save Changes') );
+		$mapthis = __('Blogger username', 'blogger-importer');
+		$tothis = __('WordPress login', 'blogger-importer');
+		$submit = esc_js( __('Save Changes', 'blogger-importer') );
 
 		foreach ( $blog['authors'] as $i => $author )
 			$rows .= "<tr><td><label for='authors[$i]'>{$author[0]}</label></td><td><select name='authors[$i]' id='authors[$i]'>" . $this->get_user_options($author[1]) . "</select></td></tr>";
@@ -739,8 +739,8 @@ class Blogger_Import extends WP_Importer {
 		// Connect to https://www.google.com
 		if ( !$sock = @ fsockopen('ssl://www.google.com', 443, $errno, $errstr) ) {
 			$this->uh_oh(
-				__('Could not connect to https://www.google.com'),
-				__('There was a problem opening a secure connection to Google. This is what went wrong:'),
+				__('Could not connect to https://www.google.com', 'blogger-importer'),
+				__('There was a problem opening a secure connection to Google. This is what went wrong:', 'blogger-importer'),
 				"$errstr ($errno)"
 			);
 			return false;
@@ -751,8 +751,8 @@ class Blogger_Import extends WP_Importer {
 	function _get_blogger_sock($host = 'www2.blogger.com') {
 		if ( !$sock = @ fsockopen($host, 80, $errno, $errstr) ) {
 			$this->uh_oh(
-				sprintf( __('Could not connect to %s'), $host ),
-				__('There was a problem opening a connection to Blogger. This is what went wrong:'),
+				sprintf( __('Could not connect to %s', 'blogger-importer'), $host ),
+				__('There was a problem opening a connection to Blogger. This is what went wrong:', 'blogger-importer'),
 				"$errstr ($errno)"
 			);
 			return false;
@@ -818,12 +818,12 @@ class Blogger_Import extends WP_Importer {
 	// Step 9: Congratulate the user
 	function congrats() {
 		$blog = (int) $_GET['blog'];
-		echo '<h1>'.__('Congratulations!').'</h1><p>'.__('Now that you have imported your Blogger blog into WordPress, what are you going to do? Here are some suggestions:').'</p><ul><li>'.__('That was hard work! Take a break.').'</li>';
+		echo '<h1>'.__('Congratulations!', 'blogger-importer').'</h1><p>'.__('Now that you have imported your Blogger blog into WordPress, what are you going to do? Here are some suggestions:', 'blogger-importer').'</p><ul><li>'.__('That was hard work! Take a break.', 'blogger-importer').'</li>';
 		if ( count($this->import['blogs']) > 1 )
-			echo '<li>'.__('In case you haven&#8217;t done it already, you can import the posts from your other blogs:'). $this->show_blogs() . '</li>';
+			echo '<li>'.__('In case you haven&#8217;t done it already, you can import the posts from your other blogs:', 'blogger-importer'). $this->show_blogs() . '</li>';
 		if ( $n = count($this->import['blogs'][$blog]['newusers']) )
-			echo '<li>'.sprintf(__('Go to <a href="%s" target="%s">Authors &amp; Users</a>, where you can modify the new user(s) or delete them. If you want to make all of the imported posts yours, you will be given that option when you delete the new authors.'), 'users.php', '_parent').'</li>';
-		echo '<li>'.__('For security, click the link below to reset this importer.').'</li>';
+			echo '<li>'.sprintf(__('Go to <a href="%s" target="%s">Authors &amp; Users</a>, where you can modify the new user(s) or delete them. If you want to make all of the imported posts yours, you will be given that option when you delete the new authors.', 'blogger-importer'), 'users.php', '_parent').'</li>';
+		echo '<li>'.__('For security, click the link below to reset this importer.', 'blogger-importer').'</li>';
 		echo '</ul>';
 	}
 
@@ -854,9 +854,9 @@ class Blogger_Import extends WP_Importer {
 		$saved = $this->save_vars();
 
 		if ( $saved && !isset($_GET['noheader']) ) {
-			$restart = __('Restart');
-			$message = __('We have saved some information about your Blogger account in your WordPress database. Clearing this information will allow you to start over. Restarting will not affect any posts you have already imported. If you attempt to re-import a blog, duplicate posts and comments will be skipped.');
-			$submit = esc_attr__('Clear account information');
+			$restart = __('Restart', 'blogger-importer');
+			$message = __('We have saved some information about your Blogger account in your WordPress database. Clearing this information will allow you to start over. Restarting will not affect any posts you have already imported. If you attempt to re-import a blog, duplicate posts and comments will be skipped.', 'blogger-importer');
+			$submit = esc_attr__('Clear account information', 'blogger-importer');
 			echo "<div class='wrap'><h2>$restart</h2><p>$message</p><form method='post' action='?import=blogger&amp;noheader=true'><p class='submit' style='text-align:left;'><input type='submit' class='button' value='$submit' name='restart' /></p></form></div>";
 		}
 	}
@@ -906,7 +906,7 @@ thead td { font-weight: bold; }
 
 $blogger_import = new Blogger_Import();
 
-register_importer('blogger', __('Blogger'), __('Import posts, comments, and users from a Blogger blog.'), array ($blogger_import, 'start'));
+register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import posts, comments, and users from a Blogger blog.', 'blogger-importer'), array ($blogger_import, 'start'));
 
 class AtomEntry {
 	var $links = array();
@@ -1092,3 +1092,8 @@ class AtomParser {
 	}
 }
 } // class_exists( 'WP_Importer' )
+
+function blogger_importer_init() {
+    load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
+add_action( 'init', 'blogger_importer_init' );
