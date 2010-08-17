@@ -5,8 +5,8 @@ Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
 Description: Import posts, comments, tags, and attachments from a Blogger blog.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.2
-Stable tag: 0.2
+Version: 0.3
+Stable tag: 0.3
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -96,7 +96,7 @@ class Blogger_Import extends WP_Importer {
 
 	function auth() {
 		// We have a single-use token that must be upgraded to a session token.
-		$token = preg_replace( '/[^-_0-9a-zA-Z]/', '', $_GET['token'] );
+		$token = urldecode( preg_replace( '/[^%-_0-9a-zA-Z]/', '', $_GET['token'] ) );
 		$headers = array(
 			"GET /accounts/AuthSubSessionToken HTTP/1.0",
 			"Authorization: AuthSub token=\"$token\""
@@ -105,7 +105,7 @@ class Blogger_Import extends WP_Importer {
 		$sock = $this->_get_auth_sock( );
 		if ( ! $sock ) return false;
 		$response = $this->_txrx( $sock, $request );
-		preg_match( '/token=([-_0-9a-z]+)/i', $response, $matches );
+		preg_match( '/token=([%-_0-9a-z]+)/i', $response, $matches );
 		if ( empty( $matches[1] ) ) {
 			$this->uh_oh(
 				__( 'Authorization failed' , 'blogger-importer'),
@@ -114,7 +114,7 @@ class Blogger_Import extends WP_Importer {
 			);
 			return false;
 		}
-		$this->token = $matches[1];
+		$this->token = urldecode( $matches[1] );
 
 		wp_redirect( remove_query_arg( array( 'token', 'noheader' ) ) );
 	}
