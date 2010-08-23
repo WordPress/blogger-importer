@@ -28,3 +28,9 @@ Import posts, comments, and users from a Blogger blog.
 * Initial release
 = 0.3 =
 * Bugfix for 403 Invalid AuthSub Token http://core.trac.wordpress.org/ticket/14629
+
+== Upgrade Notice ==
+
+= 0.3 =
+Bugfix for 403 Invalid AuthSub Token
+
