@@ -5,9 +5,9 @@ Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
 Description: Import posts, comments, tags, and attachments from a Blogger blog.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3
-Stable tag: 0.3
-License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+Version: 0.4
+Stable tag: 0.4
+License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
 if ( !defined('WP_LOAD_IMPORTERS') )
@@ -185,8 +185,13 @@ class Blogger_Import extends WP_Importer {
 						if ( $tag['attributes']['REL'] == 'alternate' && $tag['attributes']['TYPE'] == 'text/html' ) {
 							$parts = parse_url( $tag['attributes']['HREF'] );
 							$blog['host'] = $parts['host'];
-						} elseif ( $tag['attributes']['REL'] == 'edit' )
+						} elseif ( $tag['attributes']['REL'] == 'edit' ) {
 							$blog['gateway'] = $tag['attributes']['HREF'];
+						} elseif ( $tag['attributes']['REL'] == 'http://schemas.google.com/g/2005#post' ) {
+							$parts = parse_url( $tag['attributes']['HREF'] );
+							$blog['posts_host'] = $parts['host'];
+							$blog['posts_path'] = $parts['path'];
+						}
 					}
 					++$i;
 				}
@@ -425,12 +430,12 @@ class Blogger_Import extends WP_Importer {
 			do {
 				$index = $struct = $entries = array();
 				$headers = array(
-					"GET /feeds/posts/default?$query HTTP/1.0",
-					"Host: {$blog['host']}",
+					"GET {$blog['posts_path']}?$query HTTP/1.0",
+					"Host: {$blog['posts_host']}",
 					"Authorization: AuthSub token=\"$this->token\""
 				);
 				$request = join( "\r\n", $headers ) . "\r\n\r\n";
-				$sock = $this->_get_blogger_sock( $blog['host'] );
+				$sock = $this->_get_blogger_sock( $blog['posts_host'] );
 				if ( ! $sock ) return; // TODO: Error handling
 				$response = $this->_txrx( $sock, $request );
 
