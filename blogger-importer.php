@@ -6,7 +6,7 @@ Description: Import posts, comments, tags, and attachments from a Blogger blog.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.4
-Stable tag: 0.3
+Stable tag: 0.4
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 

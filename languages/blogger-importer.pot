@@ -1,20 +1,16 @@
-# Translation of the WordPress plugin Blogger Importer 0.2 by wordpressdotorg.
-# Copyright (C) 2010 wordpressdotorg
+# Copyright (C) 2010 Blogger Importer
 # This file is distributed under the same license as the Blogger Importer package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
-#
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Blogger Importer 0.2\n"
+"Project-Id-Version: Blogger Importer 0.4\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/blogger-importer\n"
-"POT-Creation-Date: 2010-06-01 13:26+0300\n"
+"POT-Creation-Date: 2011-06-10 14:30:39+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 
 #: blogger-importer.php:68
 msgid "Import Blogger"
@@ -59,77 +55,76 @@ msgstr ""
 msgid "We were not able to gain access to your account. Try starting over."
 msgstr ""
 
-#: blogger-importer.php:203
+#: blogger-importer.php:208
 msgid "No blogs found"
 msgstr ""
 
-#: blogger-importer.php:204
+#: blogger-importer.php:209
 msgid ""
 "We were able to log in but there were no blogs. Try a different account next "
 "time."
 msgstr ""
 
-#: blogger-importer.php:211
+#: blogger-importer.php:216
 msgid "Import"
 msgstr ""
 
-#: blogger-importer.php:212
+#: blogger-importer.php:217
 msgid "Continue"
 msgstr ""
 
-#: blogger-importer.php:213
+#: blogger-importer.php:218
 msgid "Importing..."
 msgstr ""
 
-#: blogger-importer.php:214
+#: blogger-importer.php:219
 msgid "Set Authors"
 msgstr ""
 
-#: blogger-importer.php:215
+#: blogger-importer.php:220
 msgid "Preparing author mapping form..."
 msgstr ""
 
-#: blogger-importer.php:216
+#: blogger-importer.php:221
 msgid "Final Step: Author Mapping"
 msgstr ""
 
-#: blogger-importer.php:217
+#: blogger-importer.php:222
 msgid "Nothing was imported. Had you already imported this blog?"
 msgstr ""
 
-#: blogger-importer.php:219
+#: blogger-importer.php:224
 msgid "Blogger Blogs"
 msgstr ""
 
-#: blogger-importer.php:220
+#: blogger-importer.php:225
 msgid "Blog Name"
 msgstr ""
 
-#: blogger-importer.php:221
+#: blogger-importer.php:226
 msgid "Blog URL"
 msgstr ""
 
-#: blogger-importer.php:222
+#: blogger-importer.php:227
 msgid "The Magic Button"
 msgstr ""
 
-#: blogger-importer.php:223
+#: blogger-importer.php:228
 msgid "Posts"
 msgstr ""
 
-#: blogger-importer.php:224
+#: blogger-importer.php:229
 msgid "Comments"
 msgstr ""
 
-#: blogger-importer.php:225
+#: blogger-importer.php:230
 msgid ""
 "This feature requires Javascript but it seems to be disabled. Please enable "
 "Javascript and then reload this page. Don&#8217;t worry, you can turn it "
 "back off when you&#8217;re done."
 msgstr ""
 
-#: blogger-importer.php:680
-#, php-format
+#: blogger-importer.php:685
 msgid ""
 "All posts were imported with the current user as author. Use this form to "
 "move each Blogger user&#8217;s posts to a different WordPress user. You may "
@@ -138,64 +133,62 @@ msgid ""
 "activate the &#8220;Restart&#8221; function below."
 msgstr ""
 
-#: blogger-importer.php:681
+#: blogger-importer.php:686
 msgid "Author mapping"
 msgstr ""
 
-#: blogger-importer.php:683
+#: blogger-importer.php:688
 msgid "Blogger username"
 msgstr ""
 
-#: blogger-importer.php:684
+#: blogger-importer.php:689
 msgid "WordPress login"
 msgstr ""
 
-#: blogger-importer.php:685
+#: blogger-importer.php:690
 msgid "Save Changes"
 msgstr ""
 
-#: blogger-importer.php:742
+#: blogger-importer.php:747
 msgid "Could not connect to https://www.google.com"
 msgstr ""
 
-#: blogger-importer.php:743
+#: blogger-importer.php:748
 msgid ""
 "There was a problem opening a secure connection to Google. This is what went "
 "wrong:"
 msgstr ""
 
-#: blogger-importer.php:754
-#, php-format
+#: blogger-importer.php:759
 msgid "Could not connect to %s"
 msgstr ""
 
-#: blogger-importer.php:755
+#: blogger-importer.php:760
 msgid ""
 "There was a problem opening a connection to Blogger. This is what went wrong:"
 msgstr ""
 
-#: blogger-importer.php:821
+#: blogger-importer.php:826
 msgid "Congratulations!"
 msgstr ""
 
-#: blogger-importer.php:821
+#: blogger-importer.php:826
 msgid ""
 "Now that you have imported your Blogger blog into WordPress, what are you "
 "going to do? Here are some suggestions:"
 msgstr ""
 
-#: blogger-importer.php:821
+#: blogger-importer.php:826
 msgid "That was hard work! Take a break."
 msgstr ""
 
-#: blogger-importer.php:823
+#: blogger-importer.php:828
 msgid ""
 "In case you haven&#8217;t done it already, you can import the posts from "
 "your other blogs:"
 msgstr ""
 
-#: blogger-importer.php:825
-#, php-format
+#: blogger-importer.php:830
 msgid ""
 "Go to <a href=\"%s\" target=\"%s\">Authors &amp; Users</a>, where you can "
 "modify the new user(s) or delete them. If you want to make all of the "
@@ -203,15 +196,15 @@ msgid ""
 "authors."
 msgstr ""
 
-#: blogger-importer.php:826
+#: blogger-importer.php:831
 msgid "For security, click the link below to reset this importer."
 msgstr ""
 
-#: blogger-importer.php:857
+#: blogger-importer.php:862
 msgid "Restart"
 msgstr ""
 
-#: blogger-importer.php:858
+#: blogger-importer.php:863
 msgid ""
 "We have saved some information about your Blogger account in your WordPress "
 "database. Clearing this information will allow you to start over. Restarting "
@@ -219,15 +212,15 @@ msgid ""
 "import a blog, duplicate posts and comments will be skipped."
 msgstr ""
 
-#: blogger-importer.php:859
+#: blogger-importer.php:864
 msgid "Clear account information"
 msgstr ""
 
-#: blogger-importer.php:909
+#: blogger-importer.php:914
 msgid "Blogger"
 msgstr ""
 
-#: blogger-importer.php:909
+#: blogger-importer.php:914
 msgid "Import posts, comments, and users from a Blogger blog."
 msgstr ""
 
