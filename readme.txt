@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Blogger Importer ===
 Contributors: wordpressdotorg
 Donate link: 
 Tags: importer, blogger
