@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: wordpressdotorg, otto42, workshopshed, SergeyBiryukov, rmccue
+Contributors: wordpressdotorg, Otto42, workshopshed, SergeyBiryukov, rmccue
 Donate link: 
 Tags: importer, blogger
 Requires at least: 3.0
@@ -7,7 +7,7 @@ Tested up to: 3.4
 Stable tag: 0.5
 License: GPLv2 or later
 
-Imports posts, comments and categories (blogger tags) from a Blogger blog then migrates authors to Wordpress users.
+Imports posts, comments, and categories (blogger tags) from a Blogger blog then migrates authors to Wordpress users.
 
 == Description ==
 
