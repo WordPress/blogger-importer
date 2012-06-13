@@ -2,24 +2,33 @@
 /*
 Plugin Name: Blogger Importer
 Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
-Description: Import posts, comments, tags, and attachments from a Blogger blog.
+Description: Import posts, comments and tags from a Blogger blog and migrate authors to Wordpress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.4
-Stable tag: 0.4
-License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+Version: 0.5
+License: GPLv2
+License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-if ( !defined('WP_LOAD_IMPORTERS') )
-	return;
+if (!defined('WP_LOAD_IMPORTERS'))
+    return;
 
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
 
-if ( !class_exists( 'WP_Importer' ) ) {
-	$class_wp_importer = ABSPATH . 'wp-admin/includes/class-wp-importer.php';
-	if ( file_exists( $class_wp_importer ) )
-		require_once $class_wp_importer;
+// Load Simple Pie
+require_once ABSPATH . WPINC . '/class-feed.php';
+require_once 'blogger-importer-sanitize.php';
+require_once 'blogger-importer-blogitem.php';
+
+// Load OAuth library
+require_once 'oauth.php';
+
+if (!class_exists('WP_Importer'))
+{
+    $class_wp_importer = ABSPATH . 'wp-admin/includes/class-wp-importer.php';
+    if (file_exists($class_wp_importer))
+        require_once $class_wp_importer;
 }
 
 /**
@@ -30,7 +39,7 @@ if ( !class_exists( 'WP_Importer' ) ) {
  * @var int
  * @since unknown
  */
-define( 'MAX_RESULTS',        50 );
+define('MAX_RESULTS', 25);
 
 /**
  * How many seconds to let the script run
@@ -40,7 +49,7 @@ define( 'MAX_RESULTS',        50 );
  * @var int
  * @since unknown
  */
-define( 'MAX_EXECUTION_TIME', 20 );
+define('MAX_EXECUTION_TIME', 20);
 
 /**
  * How many seconds between status bar updates
@@ -50,7 +59,7 @@ define( 'MAX_EXECUTION_TIME', 20 );
  * @var int
  * @since unknown
  */
-define( 'STATUS_INTERVAL',     3 );
+define('STATUS_INTERVAL', 3);
 
 /**
  * Blogger Importer
@@ -58,198 +67,252 @@ define( 'STATUS_INTERVAL',     3 );
  * @package WordPress
  * @subpackage Importer
  */
-if ( class_exists( 'WP_Importer' ) ) {
-class Blogger_Import extends WP_Importer {
+if (class_exists('WP_Importer'))
+{
+    class Blogger_Import extends WP_Importer
+    {
 
-	// Shows the welcome screen and the magic auth link.
-	function greet() {
-		$next_url = get_option('siteurl') . '/wp-admin/index.php?import=blogger&amp;noheader=true';
-		$auth_url = "https://www.google.com/accounts/AuthSubRequest";
-		$title = __('Import Blogger', 'blogger-importer');
-		$welcome = __('Howdy! This importer allows you to import posts and comments from your Blogger account into your WordPress site.', 'blogger-importer');
-		$prereqs = __('To use this importer, you must have a Google account and an upgraded (New, was Beta) blog hosted on blogspot.com or a custom domain (not FTP).', 'blogger-importer');
-		$stepone = __('The first thing you need to do is tell Blogger to let WordPress access your account. You will be sent back here after providing authorization.', 'blogger-importer');
-		$auth = esc_attr__('Authorize', 'blogger-importer');
+        function Blogger_Import()
+        {
+            global $importer_started;
+            $importer_started = time();
+            if (isset($_GET['import']) && $_GET['import'] == 'blogger')
+            {
+                add_action('admin_print_scripts', array(&$this, 'queue_scripts'));
+                add_action('admin_print_styles', array(&$this, 'queue_style'));
+            }
+        }
 
-		echo "
+        function queue_scripts($hook)
+        {
+            wp_enqueue_script('jquery');
+        }
+
+        function queue_style()
+        {
+            wp_enqueue_style('BloggerImporter', plugins_url('/blogger-importer.css', __file__));
+        }
+
+        // Shows the welcome screen and the magic auth link.
+        function greet()
+        {
+            $next_url = get_option('siteurl') . '/wp-admin/index.php?import=blogger&amp;noheader=true';
+            $auth_url = $this->get_oauth_link();
+            $title = __('Import Blogger', 'blogger-importer');
+            $welcome = __('Howdy! This importer allows you to import posts and comments from your Blogger account into your WordPress site.', 'blogger-importer');
+            $prereqs = __('To use this importer, you must have a Google account and an upgraded (New, was Beta) blog hosted on blogspot.com or a custom domain (not FTP).', 'blogger-importer');
+            $stepone = __('The first thing you need to do is tell Blogger to let WordPress access your account. You will be sent back here after providing authorization.', 'blogger-importer');
+            $auth = esc_attr__('Authorize', 'blogger-importer');
+
+            echo "
 		<div class='wrap'>
-		".screen_icon()."
+		" . screen_icon() . "
 		<h2>$title</h2>
 		<p>$welcome</p><p>$prereqs</p><p>$stepone</p>
-			<form action='$auth_url' method='get'>
+			<form action='{$auth_url['url']}' method='get'>
 				<p class='submit' style='text-align:left;'>
 					<input type='submit' class='button' value='$auth' />
-					<input type='hidden' name='scope' value='http://www.blogger.com/feeds/' />
-					<input type='hidden' name='session' value='1' />
-					<input type='hidden' name='secure' value='0' />
-					<input type='hidden' name='next' value='$next_url' />
+					<input type='hidden' name='oauth_token' value='{$auth_url['oauth_token']}' />
+					<input type='hidden' name='oauth_callback' value='{$auth_url['oauth_callback']}' />
 				</p>
 			</form>
 		</div>\n";
-	}
+        }
 
-	function uh_oh($title, $message, $info) {
-		echo "<div class='wrap'>";
-		screen_icon();
-		echo "<h2>$title</h2><p>$message</p><pre>$info</pre></div>";
-	}
+        function get_oauth_link()
+        {
+            // Establish an Blogger_OAuth consumer
+            $base_url = get_option('siteurl') . '/wp-admin';
+            $request_token_endpoint = 'https://www.google.com/accounts/OAuthGetRequestToken';
+            $authorize_endpoint = 'https://www.google.com/accounts/OAuthAuthorizeToken';
 
-	function auth() {
-		// We have a single-use token that must be upgraded to a session token.
-		$token = urldecode( preg_replace( '/[^%-_0-9a-zA-Z]/', '', $_GET['token'] ) );
-		$headers = array(
-			"GET /accounts/AuthSubSessionToken HTTP/1.0",
-			"Authorization: AuthSub token=\"$token\""
-		);
-		$request = join( "\r\n", $headers ) . "\r\n\r\n";
-		$sock = $this->_get_auth_sock( );
-		if ( ! $sock ) return false;
-		$response = $this->_txrx( $sock, $request );
-		preg_match( '/token=([%-_0-9a-z]+)/i', $response, $matches );
-		if ( empty( $matches[1] ) ) {
-			$this->uh_oh(
-				__( 'Authorization failed' , 'blogger-importer'),
-				__( 'Something went wrong. If the problem persists, send this info to support:' , 'blogger-importer'),
-				htmlspecialchars($response)
-			);
-			return false;
-		}
-		$this->token = urldecode( $matches[1] );
+            $test_consumer = new Blogger_OAuthConsumer('anonymous', 'anonymous', null); // anonymous is a google thing to allow non-registered apps to work
 
-		wp_redirect( remove_query_arg( array( 'token', 'noheader' ) ) );
-	}
+            //prepare to get request token
+            $sig_method = new Blogger_OAuthSignatureMethod_HMAC_SHA1();
+            $parsed = parse_url($request_token_endpoint);
+            $params = array('callback' => $base_url, 'scope' => 'http://www.blogger.com/feeds/', 'xoauth_displayname' => 'WordPress');
 
-	function get_token_info() {
-		$headers = array(
-			"GET /accounts/AuthSubTokenInfo  HTTP/1.0",
-			"Authorization: AuthSub token=\"$this->token\""
-		);
-		$request = join( "\r\n", $headers ) . "\r\n\r\n";
-		$sock = $this->_get_auth_sock( );
-		if ( ! $sock ) return;
-		$response = $this->_txrx( $sock, $request );
-		return $this->parse_response($response);
-	}
+            $req_req = Blogger_OAuthRequest::from_consumer_and_token($test_consumer, null, "GET", $request_token_endpoint, $params);
+            $req_req->sign_request($sig_method, $test_consumer, null);
 
-	function token_is_valid() {
-		$info = $this->get_token_info();
+            // go get the request tokens from Google
+            $req_token = wp_remote_retrieve_body(wp_remote_get($req_req->to_url(), array('sslverify' => false)));
 
-		if ( $info['code'] == 200 )
-			return true;
+            // parse the tokens
+            parse_str($req_token, $tokens);
 
-		return false;
-	}
+            $oauth_token = $tokens['oauth_token'];
+            $oauth_token_secret = $tokens['oauth_token_secret'];
 
-	function show_blogs($iter = 0) {
-		if ( empty($this->blogs) ) {
-			$headers = array(
-				"GET /feeds/default/blogs HTTP/1.0",
-				"Host: www.blogger.com",
-				"Authorization: AuthSub token=\"$this->token\""
-			);
-			$request = join( "\r\n", $headers ) . "\r\n\r\n";
-			$sock = $this->_get_blogger_sock( );
-			if ( ! $sock ) return;
-			$response = $this->_txrx( $sock, $request );
+            $callback_url = "$base_url/index.php?import=blogger&noheader=true&token=$oauth_token&token_secret=$oauth_token_secret";
 
-			// Quick and dirty XML mining.
-			list( $headers, $xml ) = explode( "\r\n\r\n", $response );
-			$p = xml_parser_create();
-			xml_parse_into_struct($p, $xml, $vals, $index);
-			xml_parser_free($p);
+            return array('url' => $authorize_endpoint, 'oauth_token' => $oauth_token, 'oauth_callback' => $callback_url);
+        }
 
-			$this->title = $vals[$index['TITLE'][0]]['value'];
+        function uh_oh($title, $message, $info)
+        {
+            echo "<div class='wrap'>";
+            screen_icon();
+            echo "<h2>$title</h2><p>$message</p><pre>$info</pre></div>";
+        }
 
-			// Give it a few retries... this step often flakes out the first time.
-			if ( empty( $index['ENTRY'] ) ) {
-				if ( $iter < 3 ) {
-					return $this->show_blogs($iter + 1);
-				} else {
-					$this->uh_oh(
-						__('Trouble signing in', 'blogger-importer'),
-						__('We were not able to gain access to your account. Try starting over.', 'blogger-importer'),
-						''
-					);
-					return false;
-				}
-			}
+        function auth()
+        {
+            // we have a authorized request token now, so upgrade it to an access token
+            $token = $_GET['token'];
+            $token_secret = $_GET['token_secret'];
 
-			foreach ( $index['ENTRY'] as $i ) {
-				$blog = array();
-				while ( ( $tag = $vals[$i] ) && ! ( $tag['tag'] == 'ENTRY' && $tag['type'] == 'close' ) ) {
-					if ( $tag['tag'] == 'TITLE' ) {
-						$blog['title'] = $tag['value'];
-					} elseif ( $tag['tag'] == 'SUMMARY' ) {
-						$blog['summary'] = $tag['value'];
-					} elseif ( $tag['tag'] == 'LINK' ) {
-						if ( $tag['attributes']['REL'] == 'alternate' && $tag['attributes']['TYPE'] == 'text/html' ) {
-							$parts = parse_url( $tag['attributes']['HREF'] );
-							$blog['host'] = $parts['host'];
-						} elseif ( $tag['attributes']['REL'] == 'edit' ) {
-							$blog['gateway'] = $tag['attributes']['HREF'];
-						} elseif ( $tag['attributes']['REL'] == 'http://schemas.google.com/g/2005#post' ) {
-							$parts = parse_url( $tag['attributes']['HREF'] );
-							$blog['posts_host'] = $parts['host'];
-							$blog['posts_path'] = $parts['path'];
-						}
-					}
-					++$i;
-				}
-				if ( ! empty ( $blog ) ) {
-					$blog['total_posts'] = $this->get_total_results('posts', $blog['host']);
-					$blog['total_comments'] = $this->get_total_results('comments', $blog['host']);
-					$blog['mode'] = 'init';
-					$this->blogs[] = $blog;
-				}
-			}
+            $oauth_access_token_endpoint = 'https://www.google.com/accounts/OAuthGetAccessToken';
 
-			if ( empty( $this->blogs ) ) {
-				$this->uh_oh(
-					__('No blogs found', 'blogger-importer'),
-					__('We were able to log in but there were no blogs. Try a different account next time.', 'blogger-importer'),
-					''
-				);
-				return false;
-			}
-		}
-//echo '<pre>'.print_r($this,1).'</pre>';
-		$start    = esc_js( __('Import', 'blogger-importer') );
-		$continue = esc_js( __('Continue', 'blogger-importer') );
-		$stop     = esc_js( __('Importing...', 'blogger-importer') );
-		$authors  = esc_js( __('Set Authors', 'blogger-importer') );
-		$loadauth = esc_js( __('Preparing author mapping form...', 'blogger-importer') );
-		$authhead = esc_js( __('Final Step: Author Mapping', 'blogger-importer') );
-		$nothing  = esc_js( __('Nothing was imported. Had you already imported this blog?', 'blogger-importer') );
-		$stopping = ''; //Missing String used below.
-		$title    = __('Blogger Blogs', 'blogger-importer');
-		$name     = __('Blog Name', 'blogger-importer');
-		$url      = __('Blog URL', 'blogger-importer');
-		$action   = __('The Magic Button', 'blogger-importer');
-		$posts    = __('Posts', 'blogger-importer');
-		$comments = __('Comments', 'blogger-importer');
-		$noscript = __('This feature requires Javascript but it seems to be disabled. Please enable Javascript and then reload this page. Don&#8217;t worry, you can turn it back off when you&#8217;re done.', 'blogger-importer');
+            // auth the token
+            $test_consumer = new Blogger_OAuthConsumer('anonymous', 'anonymous', null);
+            $auth_token = new Blogger_OAuthConsumer($token, $token_secret);
+            $access_token_req = new Blogger_OAuthRequest("GET", $oauth_access_token_endpoint);
+            $access_token_req = $access_token_req->from_consumer_and_token($test_consumer, $auth_token, "GET", $oauth_access_token_endpoint);
 
-		$interval = STATUS_INTERVAL * 1000;
+            $access_token_req->sign_request(new Blogger_OAuthSignatureMethod_HMAC_SHA1(), $test_consumer, $auth_token);
 
-		foreach ( $this->blogs as $i => $blog ) {
-			if ( $blog['mode'] == 'init' )
-				$value = $start;
-			elseif ( $blog['mode'] == 'posts' || $blog['mode'] == 'comments' )
-				$value = $continue;
-			else
-				$value = $authors;
-			$value = esc_attr($value);
-			$blogtitle = esc_js( $blog['title'] );
-			$pdone = isset($blog['posts_done']) ? (int) $blog['posts_done'] : 0;
-			$cdone = isset($blog['comments_done']) ? (int) $blog['comments_done'] : 0;
-			$init .= "blogs[$i]=new blog($i,'$blogtitle','{$blog['mode']}'," . $this->get_js_status($i) . ');';
-			$pstat = "<div class='ind' id='pind$i'>&nbsp;</div><div id='pstat$i' class='stat'>$pdone/{$blog['total_posts']}</div>";
-			$cstat = "<div class='ind' id='cind$i'>&nbsp;</div><div id='cstat$i' class='stat'>$cdone/{$blog['total_comments']}</div>";
-			$rows .= "<tr id='blog$i'><td class='blogtitle'>$blogtitle</td><td class='bloghost'>{$blog['host']}</td><td class='bar'>$pstat</td><td class='bar'>$cstat</td><td class='submit'><input type='submit' class='button' id='submit$i' value='$value' /><input type='hidden' name='blog' value='$i' /></td></tr>\n";
-		}
+            $after_access_request = wp_remote_retrieve_body(wp_remote_get($access_token_req->to_url(), array('sslverify' => false)));
 
-		echo "<div class='wrap'><h2>$title</h2><noscript>$noscript</noscript><table cellpadding='5px'><thead><tr><td>$name</td><td>$url</td><td>$posts</td><td>$comments</td><td>$action</td></tr></thead>\n$rows</table></div>";
-		echo "
+            parse_str($after_access_request, $access_tokens);
+
+            $this->token = $access_tokens['oauth_token'];
+            $this->token_secret = $access_tokens['oauth_token_secret'];
+
+            wp_redirect(remove_query_arg(array('token', 'noheader')));
+        }
+
+        // get a URL using the oauth token for authentication (returns false on failure)
+        function oauth_get($url, $params = null)
+        {
+            $test_consumer = new Blogger_OAuthConsumer('anonymous', 'anonymous', null);
+            $goog = new Blogger_OAuthConsumer($this->token, $this->token_secret, null);
+            $request = new Blogger_OAuthRequest("GET", $url, $params);
+
+            //Ref: Not importing properly http://core.trac.wordpress.org/ticket/19096
+            $blog_req = $request->from_consumer_and_token($test_consumer, $goog, 'GET', $url, $params);
+
+            $blog_req->sign_request(new Blogger_OAuthSignatureMethod_HMAC_SHA1(), $test_consumer, $goog);
+
+            $data = wp_remote_get($blog_req->to_url(), array('sslverify' => false));
+
+            if (wp_remote_retrieve_response_code($data) == 200)
+            {
+                $response = wp_remote_retrieve_body($data);
+            } else
+            {
+                $response == false;
+            }
+
+            return $response;
+        }
+
+        function show_blogs($iter = 0)
+        {
+            if (empty($this->blogs))
+            {
+                $xml = $this->oauth_get('https://www.blogger.com/feeds/default/blogs');
+
+                // Give it a few retries... this step often flakes out the first time.
+                if (empty($xml))
+                {
+                    if ($iter < 3)
+                    {
+                        return $this->show_blogs($iter + 1);
+                    } else
+                    {
+                        $this->uh_oh(__('Trouble signing in', 'blogger-importer'), __('We were not able to gain access to your account. Try starting over.', 'blogger-importer'), '');
+                        return false;
+                    }
+                }
+
+                $feed = new SimplePie();
+                $feed->set_raw_data($xml);
+                $feed->init();
+
+                foreach ($feed->get_items() as $item)
+                {
+                    $blog = array(); //reset
+                    $blog['title'] = $item->get_title();
+                    $blog['summary'] = $item->get_description();
+
+                    //ID is of the form tag:blogger.com,1999:blog-417730729915399755
+                    //We need that number from the end
+                    $rawid = explode('-', $item->get_id());
+                    $blog['id'] = $rawid[count($rawid) - 1];
+
+                    $parts = parse_url($item->get_link(0, 'alternate'));
+                    $blog['host'] = $parts['host'];
+                    $blog['gateway'] = $item->get_link(0, 'edit');
+                    $blog['posts_url'] = $item->get_link(0, 'http://schemas.google.com/g/2005#post');
+
+                    //AGC:20/4/2012 Developers guide suggests that the correct feed is located as follows
+                    //See https://developers.google.com/blogger/docs/1.0/developers_guide_php
+                    $blog['comments_url'] = "http://www.blogger.com/feeds/{$blog['id']}/comments/default";
+
+                    if (!empty($blog))
+                    {
+                        $blog['total_posts'] = $this->get_total_results($blog['posts_url']);
+                        $blog['total_comments'] = $this->get_total_results($blog['comments_url']);
+
+                        $blog['mode'] = 'init';
+                        $this->blogs[] = $blog;
+                    }
+
+                }
+
+                if (empty($this->blogs))
+                {
+                    $this->uh_oh(__('No blogs found', 'blogger-importer'), __('We were able to log in but there were no blogs. Try a different account next time.', 'blogger-importer'), '');
+                    return false;
+                }
+            }
+
+            //Should probably be using WP_LIST_TABLE here rather than manually rendering a table in html
+            //http://wpengineer.com/2426/wp_list_table-a-step-by-step-guide/
+            //echo '<pre>'.print_r($this,1).'</pre>';
+            $start = esc_js(__('Import', 'blogger-importer'));
+            $continue = esc_js(__('Continue', 'blogger-importer'));
+            $stop = esc_js(__('Importing...', 'blogger-importer'));
+            $authors = esc_js(__('Set Authors', 'blogger-importer'));
+            $loadauth = esc_js(__('Preparing author mapping form...', 'blogger-importer'));
+            $authhead = esc_js(__('Final Step: Author Mapping', 'blogger-importer'));
+            $nothing = esc_js(__('Nothing was imported. Had you already imported this blog?', 'blogger-importer'));
+            $stopping = ''; //Missing String used below.
+            $title = __('Blogger Blogs', 'blogger-importer');
+            $name = __('Blog Name', 'blogger-importer');
+            $url = __('Blog URL', 'blogger-importer');
+            $action = __('The Magic Button', 'blogger-importer');
+            $posts = __('Posts', 'blogger-importer');
+            $comments = __('Comments', 'blogger-importer');
+            $noscript = __('This feature requires Javascript but it seems to be disabled. Please enable Javascript and then reload this page. Don&#8217;t worry, you can turn it back off when you&#8217;re done.',
+                'blogger-importer');
+
+            $interval = STATUS_INTERVAL * 1000;
+            $init = '';
+            $rows = '';
+
+            foreach ($this->blogs as $i => $blog)
+            {
+                if ($blog['mode'] == 'init')
+                    $value = $start;
+                elseif ($blog['mode'] == 'posts' || $blog['mode'] == 'comments')
+                    $value = $continue;
+                else
+                    $value = $authors;
+                $value = esc_attr($value);
+                $blogtitle = esc_js($blog['title']);
+                $pdone = isset($blog['posts_done']) ? (int)$blog['posts_done'] : 0;
+                $cdone = isset($blog['comments_done']) ? (int)$blog['comments_done'] : 0;
+                $init .= "blogs[$i]=new blog($i,'$blogtitle','{$blog['mode']}','" . $this->get_js_status($i) . '\');';
+                $pstat = "<div class='ind' id='pind$i'>&nbsp;</div><div id='pstat$i' class='stat'>$pdone/{$blog['total_posts']}</div>";
+                $cstat = "<div class='ind' id='cind$i'>&nbsp;</div><div id='cstat$i' class='stat'>$cdone/{$blog['total_comments']}</div>";
+                $rows .= "<tr id='blog$i'><td class='blogtitle'>$blogtitle</td><td class='bloghost'>{$blog['host']}</td><td class='bar'>$pstat</td><td class='bar'>$cstat</td><td class='submit'><input type='submit' class='button' id='submit$i' value='$value' /><input type='hidden' name='blog' value='$i' /></td></tr>\n";
+            }
+
+            echo "<div class='wrap'>". screen_icon() ."<h2>$title</h2><noscript>$noscript</noscript><table cellpadding='5px'><thead><tr><td>$name</td><td>$url</td><td>$posts</td><td>$comments</td><td>$action</td></tr></thead>\n$rows</table></div>";
+            echo "
 		<script type='text/javascript'>
 		/* <![CDATA[ */
 			var strings = {cont:'$continue',stop:'$stop',stopping:'$stopping',authors:'$authors',nothing:'$nothing'};
@@ -258,7 +321,7 @@ class Blogger_Import extends WP_Importer {
 				this.blog   = i;
 				this.mode   = mode;
 				this.title  = title;
-				this.status = status;
+                eval('this.status='+status);
 				this.button = document.getElementById('submit'+this.blog);
 			};
 			blog.prototype = {
@@ -289,6 +352,7 @@ class Blogger_Import extends WP_Importer {
 						} else if ( text == 'nothing' ) {
 							this.stop();
 							this.nothing();
+                            this.done();
 						} else if ( text == 'continue' ) {
 							this.kick();
 						} else if ( this.mode = 'stopped' )
@@ -311,7 +375,10 @@ class Blogger_Import extends WP_Importer {
 				},
 				update: function() {
 					jQuery('#pind'+this.blog).width(((this.status.p1>0&&this.status.p2>0)?(this.status.p1/this.status.p2*jQuery('#pind'+this.blog).parent().width()):1)+'px');
+                    jQuery('#pstat'+this.blog).attr('title', 'Posts skipped '+this.status.p3);
 					jQuery('#cind'+this.blog).width(((this.status.c1>0&&this.status.c2>0)?(this.status.c1/this.status.c2*jQuery('#cind'+this.blog).parent().width()):1)+'px');
+                    jQuery('#cstat'+this.blog).attr('title', 'Comments skipped '+this.status.c3);
+
 				},
 				stop: function() {
 					this.cont = false;
@@ -366,739 +433,597 @@ class Blogger_Import extends WP_Importer {
 			jQuery.each(blogs, function(i, me){me.init();});
 		/* ]]> */
 		</script>\n";
-	}
-
-	// Handy function for stopping the script after a number of seconds.
-	function have_time() {
-		global $importer_started;
-		if ( time() - $importer_started > MAX_EXECUTION_TIME )
-			die('continue');
-		return true;
-	}
-
-	function get_total_results($type, $host) {
-		$headers = array(
-			"GET /feeds/$type/default?max-results=1&start-index=2 HTTP/1.0",
-			"Host: $host",
-			"Authorization: AuthSub token=\"$this->token\""
-		);
-		$request = join( "\r\n", $headers ) . "\r\n\r\n";
-		$sock = $this->_get_blogger_sock( $host );
-		if ( ! $sock ) return;
-		$response = $this->_txrx( $sock, $request );
-		$response = $this->parse_response( $response );
-		$parser = xml_parser_create();
-		xml_parse_into_struct($parser, $response['body'], $struct, $index);
-		xml_parser_free($parser);
-		$total_results = $struct[$index['OPENSEARCH:TOTALRESULTS'][0]]['value'];
-		return (int) $total_results;
-	}
-
-	function import_blog($blogID) {
-		global $importing_blog;
-		$importing_blog = $blogID;
-
-		if ( isset($_GET['authors']) )
-			return print($this->get_author_form());
-
-		header('Content-Type: text/plain');
-
-		if ( isset($_GET['status']) )
-			die($this->get_js_status());
-
-		if ( isset($_GET['saveauthors']) )
-			die($this->save_authors());
-
-		$blog = $this->blogs[$blogID];
-		$total_results = $this->get_total_results('posts', $blog['host']);
-		$this->blogs[$importing_blog]['total_posts'] = $total_results;
-
-		$start_index = $total_results - MAX_RESULTS + 1;
-
-		if ( isset( $this->blogs[$importing_blog]['posts_start_index'] ) )
-			$start_index = (int) $this->blogs[$importing_blog]['posts_start_index'];
-		elseif ( $total_results > MAX_RESULTS )
-			$start_index = $total_results - MAX_RESULTS + 1;
-		else
-			$start_index = 1;
-
-		// This will be positive until we have finished importing posts
-		if ( $start_index > 0 ) {
-			// Grab all the posts
-			$this->blogs[$importing_blog]['mode'] = 'posts';
-			$query = "start-index=$start_index&max-results=" . MAX_RESULTS;
-			do {
-				$index = $struct = $entries = array();
-				$headers = array(
-					"GET {$blog['posts_path']}?$query HTTP/1.0",
-					"Host: {$blog['posts_host']}",
-					"Authorization: AuthSub token=\"$this->token\""
-				);
-				$request = join( "\r\n", $headers ) . "\r\n\r\n";
-				$sock = $this->_get_blogger_sock( $blog['posts_host'] );
-				if ( ! $sock ) return; // TODO: Error handling
-				$response = $this->_txrx( $sock, $request );
-
-				$response = $this->parse_response( $response );
-
-				// Extract the entries and send for insertion
-				preg_match_all( '/<entry[^>]*>.*?<\/entry>/s', $response['body'], $matches );
-				if ( count( $matches[0] ) ) {
-					$entries = array_reverse($matches[0]);
-					foreach ( $entries as $entry ) {
-						$entry = "<feed>$entry</feed>";
-						$AtomParser = new AtomParser();
-						$AtomParser->parse( $entry );
-						$result = $this->import_post($AtomParser->entry);
-						if ( is_wp_error( $result ) )
-							return $result;
-						unset($AtomParser);
-					}
-				} else break;
-
-				// Get the 'previous' query string which we'll use on the next iteration
-				$query = '';
-				$links = preg_match_all('/<link([^>]*)>/', $response['body'], $matches);
-				if ( count( $matches[1] ) )
-					foreach ( $matches[1] as $match )
-						if ( preg_match('/rel=.previous./', $match) )
-							$query = @html_entity_decode( preg_replace('/^.*href=[\'"].*\?(.+)[\'"].*$/', '$1', $match), ENT_COMPAT, get_option('blog_charset') );
-
-				if ( $query ) {
-					parse_str($query, $q);
-					$this->blogs[$importing_blog]['posts_start_index'] = (int) $q['start-index'];
-				} else
-					$this->blogs[$importing_blog]['posts_start_index'] = 0;
-				$this->save_vars();
-			} while ( !empty( $query ) && $this->have_time() );
-		}
-
-		$total_results = $this->get_total_results( 'comments', $blog['host'] );
-		$this->blogs[$importing_blog]['total_comments'] = $total_results;
-
-		if ( isset( $this->blogs[$importing_blog]['comments_start_index'] ) )
-			$start_index = (int) $this->blogs[$importing_blog]['comments_start_index'];
-		elseif ( $total_results > MAX_RESULTS )
-			$start_index = $total_results - MAX_RESULTS + 1;
-		else
-			$start_index = 1;
-
-		if ( $start_index > 0 ) {
-			// Grab all the comments
-			$this->blogs[$importing_blog]['mode'] = 'comments';
-			$query = "start-index=$start_index&max-results=" . MAX_RESULTS;
-			do {
-				$index = $struct = $entries = array();
-				$headers = array(
-					"GET /feeds/comments/default?$query HTTP/1.0",
-					"Host: {$blog['host']}",
-					"Authorization: AuthSub token=\"$this->token\""
-				);
-				$request = join( "\r\n", $headers ) . "\r\n\r\n";
-				$sock = $this->_get_blogger_sock( $blog['host'] );
-				if ( ! $sock ) return; // TODO: Error handling
-				$response = $this->_txrx( $sock, $request );
-
-				$response = $this->parse_response( $response );
-
-				// Extract the comments and send for insertion
-				preg_match_all( '/<entry[^>]*>.*?<\/entry>/s', $response['body'], $matches );
-				if ( count( $matches[0] ) ) {
-					$entries = array_reverse( $matches[0] );
-					foreach ( $entries as $entry ) {
-						$entry = "<feed>$entry</feed>";
-						$AtomParser = new AtomParser();
-						$AtomParser->parse( $entry );
-						$this->import_comment($AtomParser->entry);
-						unset($AtomParser);
-					}
-				}
-
-				// Get the 'previous' query string which we'll use on the next iteration
-				$query = '';
-				$links = preg_match_all('/<link([^>]*)>/', $response['body'], $matches);
-				if ( count( $matches[1] ) )
-					foreach ( $matches[1] as $match )
-						if ( preg_match('/rel=.previous./', $match) )
-							$query = @html_entity_decode( preg_replace('/^.*href=[\'"].*\?(.+)[\'"].*$/', '$1', $match), ENT_COMPAT, get_option('blog_charset') );
-
-				parse_str($query, $q);
-
-				$this->blogs[$importing_blog]['comments_start_index'] = (int) $q['start-index'];
-				$this->save_vars();
-			} while ( !empty( $query ) && $this->have_time() );
-		}
-		$this->blogs[$importing_blog]['mode'] = 'authors';
-		$this->save_vars();
-		if ( !$this->blogs[$importing_blog]['posts_done'] && !$this->blogs[$importing_blog]['comments_done'] )
-			die('nothing');
-		do_action('import_done', 'blogger');
-		die('done');
-	}
-
-	function convert_date( $date ) {
-	    preg_match('#([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.[0-9]+)?(Z|[\+|\-][0-9]{2,4}){0,1}#', $date, $date_bits);
-	    $offset = iso8601_timezone_to_offset( $date_bits[7] );
-		$timestamp = gmmktime($date_bits[4], $date_bits[5], $date_bits[6], $date_bits[2], $date_bits[3], $date_bits[1]);
-		$timestamp -= $offset; // Convert from Blogger local time to GMT
-		$timestamp += get_option('gmt_offset') * 3600; // Convert from GMT to WP local time
-		return gmdate('Y-m-d H:i:s', $timestamp);
-	}
-
-	function no_apos( $string ) {
-		return str_replace( '&apos;', "'", $string);
-	}
-
-	function min_whitespace( $string ) {
-		return preg_replace( '|\s+|', ' ', $string );
-	}
-
-	function _normalize_tag( $matches ) {
-		return '<' . strtolower( $matches[1] );
-	}
-
-	function import_post( $entry ) {
-		global $importing_blog;
-
-		// The old permalink is all Blogger gives us to link comments to their posts.
-		if ( isset( $entry->draft ) )
-			$rel = 'self';
-		else
-			$rel = 'alternate';
-		foreach ( $entry->links as $link ) {
-			if ( $link['rel'] == $rel ) {
-				$parts = parse_url( $link['href'] );
-				$entry->old_permalink = $parts['path'];
-				break;
-			}
-		}
-
-		$post_date    = $this->convert_date( $entry->published );
-		$post_content = trim( addslashes( $this->no_apos( @html_entity_decode( $entry->content, ENT_COMPAT, get_option('blog_charset') ) ) ) );
-		$post_title   = trim( addslashes( $this->no_apos( $this->min_whitespace( $entry->title ) ) ) );
-		$post_status  = isset( $entry->draft ) ? 'draft' : 'publish';
-
-		// Clean up content
-		$post_content = preg_replace_callback('|<(/?[A-Z]+)|', array( &$this, '_normalize_tag' ), $post_content);
-		$post_content = str_replace('<br>', '<br />', $post_content);
-		$post_content = str_replace('<hr>', '<hr />', $post_content);
-
-		// Checks for duplicates
-		if ( isset( $this->blogs[$importing_blog]['posts'][$entry->old_permalink] ) ) {
-			++$this->blogs[$importing_blog]['posts_skipped'];
-		} elseif ( $post_id = post_exists( $post_title, $post_content, $post_date ) ) {
-			$this->blogs[$importing_blog]['posts'][$entry->old_permalink] = $post_id;
-			++$this->blogs[$importing_blog]['posts_skipped'];
-		} else {
-			$post = compact('post_date', 'post_content', 'post_title', 'post_status');
-
-			$post_id = wp_insert_post($post);
-			if ( is_wp_error( $post_id ) )
-				return $post_id;
-
-			wp_create_categories( array_map( 'addslashes', $entry->categories ), $post_id );
-
-			$author = $this->no_apos( strip_tags( $entry->author ) );
-
-			add_post_meta( $post_id, 'blogger_blog', $this->blogs[$importing_blog]['host'], true );
-			add_post_meta( $post_id, 'blogger_author', $author, true );
-			add_post_meta( $post_id, 'blogger_permalink', $entry->old_permalink, true );
-
-			$this->blogs[$importing_blog]['posts'][$entry->old_permalink] = $post_id;
-			++$this->blogs[$importing_blog]['posts_done'];
-		}
-		$this->save_vars();
-		return;
-	}
-
-	function import_comment( $entry ) {
-		global $importing_blog;
-
-		// Drop the #fragment and we have the comment's old post permalink.
-		foreach ( $entry->links as $link ) {
-			if ( $link['rel'] == 'alternate' ) {
-				$parts = parse_url( $link['href'] );
-				$entry->old_permalink = $parts['fragment'];
-				$entry->old_post_permalink = $parts['path'];
-				break;
-			}
-		}
-
-		$comment_post_ID = (int) $this->blogs[$importing_blog]['posts'][$entry->old_post_permalink];
-		preg_match('#<name>(.+?)</name>.*(?:\<uri>(.+?)</uri>)?#', $entry->author, $matches);
-		$comment_author  = addslashes( $this->no_apos( strip_tags( (string) $matches[1] ) ) );
-		$comment_author_url = addslashes( $this->no_apos( strip_tags( (string) $matches[2] ) ) );
-		$comment_date    = $this->convert_date( $entry->updated );
-		$comment_content = addslashes( $this->no_apos( @html_entity_decode( $entry->content, ENT_COMPAT, get_option('blog_charset') ) ) );
-
-		// Clean up content
-		$comment_content = preg_replace_callback('|<(/?[A-Z]+)|', array( &$this, '_normalize_tag' ), $comment_content);
-		$comment_content = str_replace('<br>', '<br />', $comment_content);
-		$comment_content = str_replace('<hr>', '<hr />', $comment_content);
-
-		// Checks for duplicates
-		if (
-			isset( $this->blogs[$importing_blog]['comments'][$entry->old_permalink] ) ||
-			comment_exists( $comment_author, $comment_date )
-		) {
-			++$this->blogs[$importing_blog]['comments_skipped'];
-		} else {
-			$comment = compact('comment_post_ID', 'comment_author', 'comment_author_url', 'comment_date', 'comment_content');
-
-			$comment = wp_filter_comment($comment);
-			$comment_id = wp_insert_comment($comment);
-
-			$this->blogs[$importing_blog]['comments'][$entry->old_permalink] = $comment_id;
-
-			++$this->blogs[$importing_blog]['comments_done'];
-		}
-		$this->save_vars();
-	}
-
-	function get_js_status($blog = false) {
-		global $importing_blog;
-		if ( $blog === false )
-			$blog = $this->blogs[$importing_blog];
-		else
-			$blog = $this->blogs[$blog];
-		$p1 = isset( $blog['posts_done'] ) ? (int) $blog['posts_done'] : 0;
-		$p2 = isset( $blog['total_posts'] ) ? (int) $blog['total_posts'] : 0;
-		$c1 = isset( $blog['comments_done'] ) ? (int) $blog['comments_done'] : 0;
-		$c2 = isset( $blog['total_comments'] ) ? (int) $blog['total_comments'] : 0;
-		return "{p1:$p1,p2:$p2,c1:$c1,c2:$c2}";
-	}
-
-	function get_author_form($blog = false) {
-		global $importing_blog, $wpdb, $current_user;
-		if ( $blog === false )
-			$blog = & $this->blogs[$importing_blog];
-		else
-			$blog = & $this->blogs[$blog];
-
-		if ( !isset( $blog['authors'] ) ) {
-			$post_ids = array_values($blog['posts']);
-			$authors = (array) $wpdb->get_col("SELECT DISTINCT meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN (" . join( ',', $post_ids ) . ")");
-			$blog['authors'] = array_map(null, $authors, array_fill(0, count($authors), $current_user->ID));
-			$this->save_vars();
-		}
-
-		$directions = sprintf( __('All posts were imported with the current user as author. Use this form to move each Blogger user&#8217;s posts to a different WordPress user. You may <a href="%s">add users</a> and then return to this page and complete the user mapping. This form may be used as many times as you like until you activate the &#8220;Restart&#8221; function below.', 'blogger-importer'), 'users.php' );
-		$heading = __('Author mapping', 'blogger-importer');
-		$blogtitle = "{$blog['title']} ({$blog['host']})";
-		$mapthis = __('Blogger username', 'blogger-importer');
-		$tothis = __('WordPress login', 'blogger-importer');
-		$submit = esc_js( __('Save Changes', 'blogger-importer') );
-
-		foreach ( $blog['authors'] as $i => $author )
-			$rows .= "<tr><td><label for='authors[$i]'>{$author[0]}</label></td><td><select name='authors[$i]' id='authors[$i]'>" . $this->get_user_options($author[1]) . "</select></td></tr>";
-
-		return "<div class='wrap'><h2>$heading</h2><h3>$blogtitle</h3><p>$directions</p><form action='index.php?import=blogger&amp;noheader=true&saveauthors=1' method='post'><input type='hidden' name='blog' value='" . esc_attr($importing_blog) . "' /><table cellpadding='5'><thead><td>$mapthis</td><td>$tothis</td></thead>$rows<tr><td></td><td class='submit'><input type='submit' class='button authorsubmit' value='$submit' /></td></tr></table></form></div>";
-	}
-
-	function get_user_options($current) {
-		global $importer_users;
-		if ( ! isset( $importer_users ) )
-			$importer_users = (array) get_users_of_blog();
-
-		foreach ( $importer_users as $user ) {
-			$sel = ( $user->user_id == $current ) ? " selected='selected'" : '';
-			$options .= "<option value='$user->user_id'$sel>$user->display_name</option>";
-		}
-
-		return $options;
-	}
-
-	function save_authors() {
-		global $importing_blog, $wpdb;
-		$authors = (array) $_POST['authors'];
-
-		$host = $this->blogs[$importing_blog]['host'];
-
-		// Get an array of posts => authors
-		$post_ids = (array) $wpdb->get_col( $wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'blogger_blog' AND meta_value = %s", $host) );
-		$post_ids = join( ',', $post_ids );
-		$results = (array) $wpdb->get_results("SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN ($post_ids)");
-		foreach ( $results as $row )
-			$authors_posts[$row->post_id] = $row->meta_value;
-
-		foreach ( $authors as $author => $user_id ) {
-			$user_id = (int) $user_id;
-
-			// Skip authors that haven't been changed
-			if ( $user_id == $this->blogs[$importing_blog]['authors'][$author][1] )
-				continue;
-
-			// Get a list of the selected author's posts
-			$post_ids = (array) array_keys( $authors_posts, $this->blogs[$importing_blog]['authors'][$author][0] );
-			$post_ids = join( ',', $post_ids);
-
-			$wpdb->query( $wpdb->prepare("UPDATE $wpdb->posts SET post_author = %d WHERE id IN ($post_ids)", $user_id) );
-			$this->blogs[$importing_blog]['authors'][$author][1] = $user_id;
-		}
-		$this->save_vars();
-
-		wp_redirect('edit.php');
-	}
-
-	function _get_auth_sock() {
-		// Connect to https://www.google.com
-		if ( !$sock = @ fsockopen('ssl://www.google.com', 443, $errno, $errstr) ) {
-			$this->uh_oh(
-				__('Could not connect to https://www.google.com', 'blogger-importer'),
-				__('There was a problem opening a secure connection to Google. This is what went wrong:', 'blogger-importer'),
-				"$errstr ($errno)"
-			);
-			return false;
-		}
-		return $sock;
-	}
-
-	function _get_blogger_sock($host = 'www2.blogger.com') {
-		if ( !$sock = @ fsockopen($host, 80, $errno, $errstr) ) {
-			$this->uh_oh(
-				sprintf( __('Could not connect to %s', 'blogger-importer'), $host ),
-				__('There was a problem opening a connection to Blogger. This is what went wrong:', 'blogger-importer'),
-				"$errstr ($errno)"
-			);
-			return false;
-		}
-		return $sock;
-	}
-
-	function _txrx( $sock, $request ) {
-		fwrite( $sock, $request );
-		while ( ! feof( $sock ) )
-			$response .= @ fread ( $sock, 8192 );
-		fclose( $sock );
-		return $response;
-	}
-
-	function revoke($token) {
-		$headers = array(
-			"GET /accounts/AuthSubRevokeToken HTTP/1.0",
-			"Authorization: AuthSub token=\"$token\""
-		);
-		$request = join( "\r\n", $headers ) . "\r\n\r\n";
-		$sock = $this->_get_auth_sock( );
-		if ( ! $sock ) return false;
-		$this->_txrx( $sock, $request );
-	}
-
-	function restart() {
-		global $wpdb;
-		$options = get_option( 'blogger_importer' );
-
-		if ( isset( $options['token'] ) )
-			$this->revoke( $options['token'] );
-
-		delete_option('blogger_importer');
-		$wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key = 'blogger_author'");
-		wp_redirect('?import=blogger');
-	}
-
-	// Returns associative array of code, header, cookies, body. Based on code from php.net.
-	function parse_response($this_response) {
-		// Split response into header and body sections
-		list($response_headers, $response_body) = explode("\r\n\r\n", $this_response, 2);
-		$response_header_lines = explode("\r\n", $response_headers);
-
-		// First line of headers is the HTTP response code
-		$http_response_line = array_shift($response_header_lines);
-		if (preg_match('@^HTTP/[0-9]\.[0-9] ([0-9]{3})@',$http_response_line, $matches)) { $response_code = $matches[1]; }
-
-		// put the rest of the headers in an array
-		$response_header_array = array();
-		foreach($response_header_lines as $header_line) {
-			list($header,$value) = explode(': ', $header_line, 2);
-			$response_header_array[$header] .= $value."\n";
-		}
-
-		$cookie_array = array();
-		$cookies = explode("\n", $response_header_array["Set-Cookie"]);
-		foreach($cookies as $this_cookie) { array_push($cookie_array, "Cookie: ".$this_cookie); }
-
-		return array("code" => $response_code, "header" => $response_header_array, "cookies" => $cookie_array, "body" => $response_body);
-	}
-
-	// Step 9: Congratulate the user
-	function congrats() {
-		$blog = (int) $_GET['blog'];
-		echo '<h1>'.__('Congratulations!', 'blogger-importer').'</h1><p>'.__('Now that you have imported your Blogger blog into WordPress, what are you going to do? Here are some suggestions:', 'blogger-importer').'</p><ul><li>'.__('That was hard work! Take a break.', 'blogger-importer').'</li>';
-		if ( count($this->import['blogs']) > 1 )
-			echo '<li>'.__('In case you haven&#8217;t done it already, you can import the posts from your other blogs:', 'blogger-importer'). $this->show_blogs() . '</li>';
-		if ( $n = count($this->import['blogs'][$blog]['newusers']) )
-			echo '<li>'.sprintf(__('Go to <a href="%s" target="%s">Authors &amp; Users</a>, where you can modify the new user(s) or delete them. If you want to make all of the imported posts yours, you will be given that option when you delete the new authors.', 'blogger-importer'), 'users.php', '_parent').'</li>';
-		echo '<li>'.__('For security, click the link below to reset this importer.', 'blogger-importer').'</li>';
-		echo '</ul>';
-	}
-
-	// Figures out what to do, then does it.
-	function start() {
-		if ( isset($_POST['restart']) )
-			$this->restart();
-
-		$options = get_option('blogger_importer');
-
-		if ( is_array($options) )
-			foreach ( $options as $key => $value )
-				$this->$key = $value;
-
-		if ( isset( $_REQUEST['blog'] ) ) {
-			$blog = is_array($_REQUEST['blog']) ? array_shift( $keys = array_keys( $_REQUEST['blog'] ) ) : $_REQUEST['blog'];
-			$blog = (int) $blog;
-			$result = $this->import_blog( $blog );
-			if ( is_wp_error( $result ) )
-				echo $result->get_error_message();
-		} elseif ( isset($_GET['token']) )
-			$this->auth();
-		elseif ( isset($this->token) && $this->token_is_valid() )
-			$this->show_blogs();
-		else
-			$this->greet();
-
-		$saved = $this->save_vars();
-
-		if ( $saved && !isset($_GET['noheader']) ) {
-			$restart = __('Restart', 'blogger-importer');
-			$message = __('We have saved some information about your Blogger account in your WordPress database. Clearing this information will allow you to start over. Restarting will not affect any posts you have already imported. If you attempt to re-import a blog, duplicate posts and comments will be skipped.', 'blogger-importer');
-			$submit = esc_attr__('Clear account information', 'blogger-importer');
-			echo "<div class='wrap'><h2>$restart</h2><p>$message</p><form method='post' action='?import=blogger&amp;noheader=true'><p class='submit' style='text-align:left;'><input type='submit' class='button' value='$submit' name='restart' /></p></form></div>";
-		}
-	}
-
-	function save_vars() {
-		$vars = get_object_vars($this);
-		update_option( 'blogger_importer', $vars );
-
-		return !empty($vars);
-	}
-
-	function admin_head() {
-?>
-<style type="text/css">
-td { text-align: center; line-height: 2em;}
-thead td { font-weight: bold; }
-.bar {
-	width: 200px;
-	text-align: left;
-	line-height: 2em;
-	padding: 0px;
-}
-.ind {
-	position: absolute;
-	background-color: #83B4D8;
-	width: 1px;
-	z-index: 9;
-}
-.stat {
-	z-index: 10;
-	position: relative;
-	text-align: center;
-}
-</style>
-<?php
-	}
-
-	function Blogger_Import() {
-		global $importer_started;
-		$importer_started = time();
-		if ( isset( $_GET['import'] ) && $_GET['import'] == 'blogger' ) {
-			wp_enqueue_script('jquery');
-			add_action('admin_head', array(&$this, 'admin_head'));
-		}
-	}
-}
-
-$blogger_import = new Blogger_Import();
-
-register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import posts, comments, and users from a Blogger blog.', 'blogger-importer'), array ($blogger_import, 'start'));
-
-class AtomEntry {
-	var $links = array();
-	var $categories = array();
-}
-
-class AtomParser {
-
-	var $ATOM_CONTENT_ELEMENTS = array('content','summary','title','subtitle','rights');
-	var $ATOM_SIMPLE_ELEMENTS = array('id','updated','published','draft','author');
-
-	var $depth = 0;
-	var $indent = 2;
-	var $in_content;
-	var $ns_contexts = array();
-	var $ns_decls = array();
-	var $is_xhtml = false;
-	var $skipped_div = false;
-
-	var $entry;
-
-	function AtomParser() {
-		$this->entry = new AtomEntry();
-	}
-
-	function _map_attrs_func( $k, $v ) {
-		return "$k=\"$v\"";
-	}
-
-	function _map_xmlns_func( $p, $n ) {
-		$xd = "xmlns";
-		if ( strlen( $n[0] ) > 0 )
-			$xd .= ":{$n[0]}";
-
-		return "{$xd}=\"{$n[1]}\"";
-	}
-
-	function parse($xml) {
-
-		global $app_logging;
-		array_unshift($this->ns_contexts, array());
-
-		$parser = xml_parser_create_ns();
-		xml_set_object($parser, $this);
-		xml_set_element_handler($parser, "start_element", "end_element");
-		xml_parser_set_option($parser,XML_OPTION_CASE_FOLDING,0);
-		xml_parser_set_option($parser,XML_OPTION_SKIP_WHITE,0);
-		xml_set_character_data_handler($parser, "cdata");
-		xml_set_default_handler($parser, "_default");
-		xml_set_start_namespace_decl_handler($parser, "start_ns");
-		xml_set_end_namespace_decl_handler($parser, "end_ns");
-
-		$contents = "";
-
-		xml_parse($parser, $xml);
-
-		xml_parser_free($parser);
-
-		return true;
-	}
-
-	function start_element($parser, $name, $attrs) {
-
-		$tag = array_pop(split(":", $name));
-
-		array_unshift($this->ns_contexts, $this->ns_decls);
-
-		$this->depth++;
-
-		if (!empty($this->in_content)) {
-			$attrs_prefix = array();
-
-			// resolve prefixes for attributes
-			foreach($attrs as $key => $value) {
-				$attrs_prefix[$this->ns_to_prefix($key)] = $this->xml_escape($value);
-			}
-			$attrs_str = join(' ', array_map( array( &$this, '_map_attrs_func' ), array_keys($attrs_prefix), array_values($attrs_prefix)));
-			if (strlen($attrs_str) > 0) {
-				$attrs_str = " " . $attrs_str;
-			}
-
-			$xmlns_str = join(' ', array_map( array( &$this, '_map_xmlns_func' ), array_keys($this->ns_contexts[0]), array_values($this->ns_contexts[0])));
-			if (strlen($xmlns_str) > 0) {
-				$xmlns_str = " " . $xmlns_str;
-			}
-
-			// handle self-closing tags (case: a new child found right-away, no text node)
-			if (count($this->in_content) == 2) {
-				array_push($this->in_content, ">");
-			}
-
-			array_push($this->in_content, "<". $this->ns_to_prefix($name) ."{$xmlns_str}{$attrs_str}");
-		} else if (in_array($tag, $this->ATOM_CONTENT_ELEMENTS) || in_array($tag, $this->ATOM_SIMPLE_ELEMENTS)) {
-			$this->in_content = array();
-			$this->is_xhtml = $attrs['type'] == 'xhtml';
-			array_push($this->in_content, array($tag,$this->depth));
-		} else if ($tag == 'link') {
-			array_push($this->entry->links, $attrs);
-		} else if ($tag == 'category') {
-			array_push($this->entry->categories, $attrs['term']);
-		}
-
-		$this->ns_decls = array();
-	}
-
-	function end_element($parser, $name) {
-
-		$tag = array_pop(split(":", $name));
-
-		if (!empty($this->in_content)) {
-			if ($this->in_content[0][0] == $tag &&
-			$this->in_content[0][1] == $this->depth) {
-				array_shift($this->in_content);
-				if ($this->is_xhtml) {
-					$this->in_content = array_slice($this->in_content, 2, count($this->in_content)-3);
-				}
-				$this->entry->$tag = join('',$this->in_content);
-				$this->in_content = array();
-			} else {
-				$endtag = $this->ns_to_prefix($name);
-				if (strpos($this->in_content[count($this->in_content)-1], '<' . $endtag) !== false) {
-					array_push($this->in_content, "/>");
-				} else {
-					array_push($this->in_content, "</$endtag>");
-				}
-			}
-		}
-
-		array_shift($this->ns_contexts);
-
-		#print str_repeat(" ", $this->depth * $this->indent) . "end_element('$name')" ."\n";
-
-		$this->depth--;
-	}
-
-	function start_ns($parser, $prefix, $uri) {
-		#print str_repeat(" ", $this->depth * $this->indent) . "starting: " . $prefix . ":" . $uri . "\n";
-		array_push($this->ns_decls, array($prefix,$uri));
-	}
-
-	function end_ns($parser, $prefix) {
-		#print str_repeat(" ", $this->depth * $this->indent) . "ending: #" . $prefix . "#\n";
-	}
-
-	function cdata($parser, $data) {
-		#print str_repeat(" ", $this->depth * $this->indent) . "data: #" . $data . "#\n";
-		if (!empty($this->in_content)) {
-			// handle self-closing tags (case: text node found, need to close element started)
-			if (strpos($this->in_content[count($this->in_content)-1], '<') !== false) {
-				array_push($this->in_content, ">");
-			}
-			array_push($this->in_content, $this->xml_escape($data));
-		}
-	}
-
-	function _default($parser, $data) {
-		# when does this gets called?
-	}
-
-
-	function ns_to_prefix($qname) {
-		$components = split(":", $qname);
-		$name = array_pop($components);
-
-		if (!empty($components)) {
-			$ns = join(":",$components);
-			foreach ($this->ns_contexts as $context) {
-				foreach ($context as $mapping) {
-					if ($mapping[1] == $ns && strlen($mapping[0]) > 0) {
-						return "$mapping[0]:$name";
-					}
-				}
-			}
-		}
-		return $name;
-	}
-
-	function xml_escape($string)
-	{
-			 return str_replace(array('&','"',"'",'<','>'),
-				array('&amp;','&quot;','&apos;','&lt;','&gt;'),
-				$string );
-	}
-}
+        }
+
+        // Handy function for stopping the script after a number of seconds.
+        function have_time()
+        {
+            global $importer_started;
+            if (time() - $importer_started > MAX_EXECUTION_TIME)
+                self::ajax_die('continue');
+            return true;
+        }
+
+        function get_total_results($url)
+        {
+            $response = $this->oauth_get($url, array('max-results' => 1, 'start-index' => 2));
+
+            $feed = new SimplePie();
+            $feed->set_raw_data($response);
+            $feed->init();
+            $results = $feed->get_channel_tags('http://a9.com/-/spec/opensearchrss/1.0/', 'totalResults');
+
+            $total_results = $results[0]['data'];
+            unset($feed);
+            return (int)$total_results;
+        }
+
+        function import_blog($blogID)
+        {
+            global $importing_blog;
+            $importing_blog = $blogID;
+
+            if (isset($_GET['authors']))
+                return print ($this->get_author_form());
+
+            if (isset($_GET['status']))
+                self::ajax_die($this->get_js_status());
+
+            if (isset($_GET['saveauthors']))
+                self::ajax_die($this->save_authors());
+
+            //Simpler counting for posts as we load them forwards
+            if (isset($this->blogs[$importing_blog]['posts_start_index']))
+                $start_index = (int)$this->blogs[$importing_blog]['posts_start_index'];
+            else
+                $start_index = 1;
+
+            // This will be positive until we have finished importing posts
+            if ($start_index > 0)
+            {
+                // Grab all the posts
+                $this->blogs[$importing_blog]['mode'] = 'posts';
+                do
+                {
+
+                    $index = $struct = $entries = array();
+
+                    $url = $this->blogs[$importing_blog]['posts_url'];
+
+                    $response = $this->oauth_get($url, array('max-results' => MAX_RESULTS, 'start-index' => $start_index));
+
+                    if ($response == false)
+                        break;
+
+                    // parse the feed
+                    $feed = new SimplePie();
+                    $feed->set_item_class('WP_SimplePie_Blog_Item');
+                    $feed->set_sanitize_class('Blogger_Importer_Sanitize');
+                    $feed->set_raw_data($response);
+                    $feed->init();
+
+                    foreach ($feed->get_items() as $item)
+                    {
+
+                        $blogentry = new BloggerEntry();
+
+                        $blogentry->id = $item->get_id();
+                        $blogentry->published = $item->get_published();
+                        $blogentry->updated = $item->get_updated();
+                        $blogentry->isDraft = $item->get_draft_status($item);
+                        $blogentry->title = $item->get_title();
+                        $blogentry->content = $item->get_content();
+                        $blogentry->author = $item->get_author()->get_name();
+                        $blogentry->geotags = $item->get_geotags();
+
+                        $linktypes = array('replies', 'edit', 'self', 'alternate');
+                        foreach ($linktypes as $type)
+                        {
+                            $links = $item->get_links($type);
+
+                            if (!is_null($links))
+                            {
+                                foreach ($links as $link)
+                                {
+                                    $blogentry->links[] = array('rel' => $type, 'href' => $link);
+                                }
+                            }
+                        }
+
+                        $cats = $item->get_categories();
+
+                        if (!is_null($cats))
+                        {
+                            foreach ($cats as $cat)
+                            {
+                                $blogentry->categories[] = $cat->term;
+                            }
+                        }
+
+                        $result = $this->import_post($blogentry);
+
+                        //Ref: Not importing properly http://core.trac.wordpress.org/ticket/19096
+                        //Simplified this section to count what is loaded rather than parsing the results again
+                        $start_index++;
+                    }
+
+                    $this->blogs[$importing_blog]['posts_start_index'] = $start_index;
+
+                    $this->save_vars();
+
+                } while ($this->blogs[$importing_blog]['total_posts'] > $start_index && $this->have_time()); //have time function will "die" if it's out of time
+            }
+
+
+            if (isset($this->blogs[$importing_blog]['comments_start_index']))
+                $start_index = (int)$this->blogs[$importing_blog]['comments_start_index'];
+            else
+                $start_index = 1;
+
+            if ($start_index > 0 && $this->blogs[$importing_blog]['total_comments'] > 0)
+            {
+
+                $this->blogs[$importing_blog]['mode'] = 'comments';
+                do
+                {
+                    $index = $struct = $entries = array();
+
+                    //So we can link up the comments as we go we need to load them in reverse order
+                    //Reverse the start index as the GData Blogger feed can't be sorted
+                    $batch = ((floor(($this->blogs[$importing_blog]['total_comments'] - $start_index) / MAX_RESULTS) * MAX_RESULTS) + 1);
+
+                    $response = $this->oauth_get($this->blogs[$importing_blog]['comments_url'], array('max-results' => MAX_RESULTS, 'start-index' => $batch));
+
+                    // parse the feed
+                    $feed = new SimplePie();
+                    $feed->set_item_class('WP_SimplePie_Blog_Item');
+                    // Use the standard "stricter" sanitize class for comments
+                    $feed->set_raw_data($response);
+                    $feed->init();
+
+                    //Reverse the batch so we load the oldest comments first and hence can link up nested comments
+                    $comments = array_reverse($feed->get_items());
+
+                    if (!is_null($comments))
+                    {
+                        foreach ($comments as $item)
+                        {
+
+                            $blogentry = new BloggerEntry();
+                            $blogentry->id = $item->get_id();
+                            $blogentry->updated = $item->get_updated();
+                            $blogentry->content = $item->get_content();
+                            $blogentry->author = $item->get_author()->get_name();
+                            $blogentry->authoruri = $item->get_author()->get_link();
+                            $blogentry->authoremail = $item->get_author()->get_email();
+
+                            $temp = $item->get_item_tags('http://purl.org/syndication/thread/1.0', 'in-reply-to');
+
+                            foreach ($temp as $t)
+                            {
+                                if (isset($t['attribs']['']['source']))
+                                {
+                                    $blogentry->source = $t['attribs']['']['source'];
+                                }
+                            }
+
+                            //Get the links
+                            $linktypes = array('edit', 'self', 'alternate', 'related');
+                            foreach ($linktypes as $type)
+                            {
+                                $links = $item->get_links($type);
+                                if (!is_null($links))
+                                {
+                                    foreach ($links as $link)
+                                    {
+                                        $blogentry->links[] = array('rel' => $type, 'href' => $link);
+                                    }
+                                }
+                            }
+
+                            $this->import_comment($blogentry);
+                            $start_index++;
+                        }
+                    }
+
+                    $this->blogs[$importing_blog]['comments_start_index'] = $start_index;
+                    $this->save_vars();
+                } while ($this->blogs[$importing_blog]['total_comments'] > $start_index && $this->have_time());
+            }
+
+            $this->blogs[$importing_blog]['mode'] = 'authors';
+            $this->save_vars();
+
+            if (!$this->blogs[$importing_blog]['posts_done'] && !$this->blogs[$importing_blog]['comments_done'])
+                self::ajax_die('nothing');
+
+            do_action('import_done', 'blogger');
+            self::ajax_die('done');
+        }
+
+        function no_apos($string)
+        {
+            return str_replace('&apos;', "'", $string);
+        }
+
+        function min_whitespace($string)
+        {
+            return preg_replace('|\s+|', ' ', $string);
+        }
+
+        function _normalize_tag($matches)
+        {
+            return '<' . strtolower($matches[1]);
+        }
+
+        function import_post($entry)
+        {
+            global $importing_blog;
+
+            foreach ($entry->links as $link)
+            {
+                // save the self link as meta
+                if ($link['rel'] == 'self')
+                {
+                    $postself = $link['href'];
+                    $parts = parse_url($link['href']);
+                    $entry->old_permalink = $parts['path'];
+                }
+
+                // get the old URI for the page when available
+                if ($link['rel'] == 'alternate')
+                {
+                    $parts = parse_url($link['href']);
+                    $entry->bookmark = $parts['path'];
+                }
+
+                // save the replies feed link as meta (ignore the comment form one)
+                if ($link['rel'] == 'replies' && false === strpos($link['href'], '#comment-form'))
+                {
+                    $postreplies = $link['href'];
+                }
+            }
+
+            //Check if we are double cleaning here? Does the Simplepie already do all this?
+            $post_date = $entry->published;
+            $post_content = trim(addslashes($this->no_apos(@html_entity_decode($entry->content, ENT_COMPAT, get_option('blog_charset')))));
+            $post_title = trim(addslashes($this->no_apos($this->min_whitespace($entry->title))));
+
+            $post_status = $entry->isDraft ? 'draft' : 'publish';
+
+            // N.B. Clean up of $post_content is now part of the sanitize class
+
+            // Checks for duplicates
+            if (isset($this->blogs[$importing_blog]['posts'][$entry->old_permalink]))
+            {
+                $this->blogs[$importing_blog]['posts_skipped']++;
+            } elseif ($post_id = post_exists($post_title, $post_content, $post_date))
+            {
+                $this->blogs[$importing_blog]['posts'][$entry->old_permalink] = $post_id;
+                $this->blogs[$importing_blog]['posts_skipped']++;
+            } else
+            {
+                $post = compact('post_date', 'post_content', 'post_title', 'post_status');
+
+                $post_id = wp_insert_post($post);
+                if (is_wp_error($post_id))
+                    return $post_id;
+
+                wp_create_categories(array_map('addslashes', $entry->categories), $post_id);
+
+                $author = $this->no_apos(strip_tags($entry->author));
+
+                add_post_meta($post_id, 'blogger_blog', $this->blogs[$importing_blog]['host'], true);
+                add_post_meta($post_id, 'blogger_author', $author, true);
+
+                //Use the page id if available or the blogger internal id if it's a draft
+                if ($entry->isDraft | !isset($entry->bookmark))
+                    add_post_meta($post_id, 'blogger_permalink', $entry->old_permalink, true);
+                else
+                    add_post_meta($post_id, 'blogger_permalink', $entry->bookmark, true);
+
+                add_post_meta($post_id, '_blogger_self', $postself, true);
+                
+                if (isset($entry->geotags)) {
+                    add_post_meta($post_id,'geo_latitude',$entry->geotags['geo_latitude']);
+                    add_post_meta($post_id,'geo_longitude',$entry->geotags['geo_longitude']);
+                    if (isset($entry->geotags['geo_address'])) {
+                        add_post_meta($post_id,'geo_address',$entry->geotags['geo_address']);
+                    }
+                }
+
+                $this->blogs[$importing_blog]['posts'][$entry->old_permalink] = $post_id;
+
+                $this->blogs[$importing_blog]['posts_done']++;
+            }
+            $this->save_vars();
+            return;
+        }
+
+        function import_comment($entry)
+        {
+            global $importing_blog;
+
+            $parts = parse_url($entry->source);
+            $entry->old_post_permalink = $parts['path']; //Will be something like this '/feeds/417730729915399755/posts/default/8397846992898424746'
+
+            // Drop the #fragment and we have the comment's old post permalink.
+            foreach ($entry->links as $link)
+            {
+                if ($link['rel'] == 'alternate')
+                {
+                    $parts = parse_url($link['href']);
+                    $entry->old_permalink = $parts['fragment'];
+                }
+                //Parent post for nested links
+                if ($link['rel'] == 'related')
+                {
+                    $parts = parse_url($link['href']);
+                    $entry->related = $parts['path'];
+                }
+                if ($link['rel'] == 'self')
+                {
+                    $parts = parse_url($link['href']);
+                    $entry->self = $parts['path'];
+                }
+            }
+
+            //Check for duplicated cleanup here
+            $comment_post_ID = (int)$this->blogs[$importing_blog]['posts'][$entry->old_post_permalink];
+            $comment_author = addslashes($this->no_apos(strip_tags($entry->author)));
+            $comment_author_url = addslashes($this->no_apos(strip_tags($entry->authoruri)));
+            $comment_author_email = addslashes($this->no_apos(strip_tags($entry->authoremail)));
+            $comment_date = $entry->updated;
+
+            // Clean up content
+            // Again, check if the Simplepie is already handling all of the cleaning
+            $comment_content = addslashes($this->no_apos(@html_entity_decode($entry->content, ENT_COMPAT, get_option('blog_charset'))));
+            $comment_content = preg_replace_callback('|<(/?[A-Z]+)|', array(&$this, '_normalize_tag'), $comment_content);
+            $comment_content = str_replace('<br>', '<br />', $comment_content);
+            $comment_content = str_replace('<hr>', '<hr />', $comment_content);
+
+            // Nested comment?
+            if (!is_null($entry->related))
+            {
+                $comment_parent = $this->blogs[$importing_blog]['comments'][$entry->related];
+            }
+
+            // if the post does not exist then we need stop and not add the comment
+            if ($comment_post_ID != 0)
+            {
+                // Checks for duplicates
+                if (isset($this->blogs[$importing_blog][$entry->id]) || $this->comment_exists($comment_post_ID, $comment_author, $comment_date))
+                {
+                    $this->blogs[$importing_blog]['comments_skipped']++;
+                } else
+                {
+                    $comment = compact('comment_post_ID', 'comment_author', 'comment_author_url', 'comment_author_email', 'comment_date', 'comment_content', 'comment_parent');
+
+                    $comment = wp_filter_comment($comment);
+                    $comment_id = wp_insert_comment($comment);
+
+                    $this->blogs[$importing_blog]['comments'][$entry->id] = $comment_id;
+                    $this->blogs[$importing_blog]['comments'][$entry->self] = $comment_id; //For nested comments
+
+                    $this->blogs[$importing_blog]['comments_done']++;
+                }
+            } else
+            {
+                $this->blogs[$importing_blog]['comments_skipped']++;
+            }
+            $this->save_vars();
+        }
+
+        function ajax_die($data)
+        {
+            ob_clean(); //Discard any debug messages or other fluff already sent
+            header('Content-Type: text/plain');
+            die($data);
+        }
+
+
+        function get_js_status($blog = false)
+        {
+            global $importing_blog;
+            if ($blog === false)
+                $blog = $this->blogs[$importing_blog];
+            else
+                $blog = $this->blogs[$blog];
+
+            $p1 = isset($blog['posts_done']) ? (int)$blog['posts_done'] : 0;
+            $p2 = isset($blog['total_posts']) ? (int)$blog['total_posts'] : 0;
+            $p3 = isset($blog['posts_skipped']) ? (int)$blog['posts_skipped'] : 0;
+            $c1 = isset($blog['comments_done']) ? (int)$blog['comments_done'] : 0;
+            $c2 = isset($blog['total_comments']) ? (int)$blog['total_comments'] : 0;
+            $c3 = isset($blog['comments_skipped']) ? (int)$blog['comments_skipped'] : 0;
+            return "{p1:$p1,p2:$p2,p3:$p3,c1:$c1,c2:$c2,c3:$c3}";
+        }
+
+        function get_author_form($blog = false)
+        {
+            global $importing_blog, $wpdb, $current_user;
+            if ($blog === false)
+                $blog = &$this->blogs[$importing_blog];
+            else
+                $blog = &$this->blogs[$blog];
+
+            if (!isset($blog['authors']))
+            {
+                $post_ids = array_values($blog['posts']);
+                $authors = (array )$wpdb->get_col("SELECT DISTINCT meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN (" . join(',', $post_ids) . ")");
+                $blog['authors'] = array_map(null, $authors, array_fill(0, count($authors), $current_user->ID));
+                $this->save_vars();
+            }
+
+            $directions = sprintf(__('All posts were imported with the current user as author. Use this form to move each Blogger user&#8217;s posts to a different WordPress user. You may <a href="%s">add users</a> and then return to this page and complete the user mapping. This form may be used as many times as you like until you activate the &#8220;Restart&#8221; function below.',
+                'blogger-importer'), 'users.php');
+            $heading = __('Author mapping', 'blogger-importer');
+            $blogtitle = "{$blog['title']} ({$blog['host']})";
+            $mapthis = __('Blogger username', 'blogger-importer');
+            $tothis = __('WordPress login', 'blogger-importer');
+            $submit = esc_js(__('Save Changes', 'blogger-importer'));
+            $rows = '';
+
+            foreach ($blog['authors'] as $i => $author)
+                $rows .= "<tr><td><label for='authors[$i]'>{$author[0]}</label></td><td><select name='authors[$i]' id='authors[$i]'>" . $this->get_user_options($author[1]) . "</select></td></tr>";
+
+            return "<div class='wrap'>".screen_icon()."<h2>$heading</h2><h3>$blogtitle</h3><p>$directions</p><form action='index.php?import=blogger&amp;noheader=true&saveauthors=1' method='post'><input type='hidden' name='blog' value='" .
+                esc_attr($importing_blog) . "' /><table cellpadding='5'><thead><td>$mapthis</td><td>$tothis</td></thead>$rows<tr><td></td><td class='submit'><input type='submit' class='button authorsubmit' value='$submit' /></td></tr></table></form></div>";
+        }
+
+        function get_user_options($current)
+        {
+            global $importer_users;
+            if (!isset($importer_users))
+                $importer_users = (array )get_users(); //Function: get_users_of_blog() Deprecated in version 3.1. Use get_users() instead.
+
+            $options = '';
+
+            foreach ($importer_users as $user)
+            {
+                $sel = ($user->ID == $current) ? " selected='selected'" : '';
+                $options .= "<option value='$user->ID'$sel>$user->display_name</option>";
+            }
+
+            return $options;
+        }
+
+        function save_authors()
+        {
+            global $importing_blog, $wpdb;
+            $blog = &$this->blogs[$importing_blog]; //Get a reference to blogs so we don't have to write it longhand
+
+            $authors = (array )$_POST['authors'];
+
+            $host = $blog['host'];
+
+            // Get an array of posts => authors
+            $post_ids = (array )$wpdb->get_col($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'blogger_blog' AND meta_value = %s", $host));
+            $post_ids = join(',', $post_ids);
+            $results = (array )$wpdb->get_results("SELECT post_id, meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN ($post_ids)");
+            foreach ($results as $row)
+                $authors_posts[$row->post_id] = $row->meta_value;
+
+            foreach ($authors as $author => $user_id)
+            {
+                $user_id = (int)$user_id;
+
+                // Skip authors that haven't been changed
+                if ($user_id == $blog['authors'][$author][1])
+                    continue;
+
+                // Get a list of the selected author's posts
+                $post_ids = (array )array_keys($authors_posts, $blog['authors'][$author][0]);
+                $post_ids = join(',', $post_ids);
+
+                $wpdb->query($wpdb->prepare("UPDATE $wpdb->posts SET post_author = %d WHERE id IN ($post_ids)", $user_id));
+                $blog['authors'][$author][1] = $user_id;
+            }
+            $this->save_vars();
+
+            wp_redirect('edit.php');
+        }
+
+        function restart()
+        {
+            global $wpdb;
+            $options = get_option('blogger_importer');
+
+            delete_option('blogger_importer');
+            $wpdb->query("DELETE FROM $wpdb->postmeta WHERE meta_key = 'blogger_author'");
+            wp_redirect('?import=blogger');
+        }
+
+        // Step 9: Congratulate the user
+        function congrats()
+        {
+            $blog = (int)$_GET['blog'];
+            echo '<h1>' . __('Congratulations!', 'blogger-importer') . '</h1><p>' . __('Now that you have imported your Blogger blog into WordPress, what are you going to do? Here are some suggestions:',
+                'blogger-importer') . '</p><ul><li>' . __('That was hard work! Take a break.', 'blogger-importer') . '</li>';
+            if (count($this->import['blogs']) > 1)
+                echo '<li>' . __('In case you haven&#8217;t done it already, you can import the posts from your other blogs:', 'blogger-importer') . $this->show_blogs() . '</li>';
+            if ($n = count($this->import['blogs'][$blog]['newusers']))
+                echo '<li>' . sprintf(__('Go to <a href="%s" target="%s">Authors &amp; Users</a>, where you can modify the new user(s) or delete them. If you want to make all of the imported posts yours, you will be given that option when you delete the new authors.',
+                    'blogger-importer'), 'users.php', '_parent') . '</li>';
+            echo '<li>' . __('For security, click the link below to reset this importer.', 'blogger-importer') . '</li>';
+            echo '</ul>';
+        }
+
+        // Figures out what to do, then does it.
+        function start()
+        {
+            if (isset($_POST['restart']))
+                $this->restart();
+
+            $options = get_option('blogger_importer');
+
+            if (is_array($options))
+                foreach ($options as $key => $value)
+                    $this->$key = $value;
+
+            if (isset($_REQUEST['blog']))
+            {
+                $blog = is_array($_REQUEST['blog']) ? array_shift($keys = array_keys($_REQUEST['blog'])) : $_REQUEST['blog'];
+                $blog = (int)$blog;
+                $result = $this->import_blog($blog);
+                if (is_wp_error($result))
+                    echo $result->get_error_message();
+            } elseif (isset($_GET['token']) && isset($_GET['token_secret']))
+                $this->auth();
+            elseif (isset($this->token) && isset($this->token_secret))
+                $this->show_blogs();
+            else
+                $this->greet();
+
+            $saved = $this->save_vars();
+
+            if ($saved && !isset($_GET['noheader']))
+            {
+                $restart = __('Restart', 'blogger-importer');
+                $message = __('We have saved some information about your Blogger account in your WordPress database. Clearing this information will allow you to start over. Restarting will not affect any posts you have already imported. If you attempt to re-import a blog, duplicate posts and comments will be skipped.',
+                    'blogger-importer');
+                $submit = esc_attr__('Clear account information', 'blogger-importer');
+                echo "<div class='wrap'><h2>$restart</h2><p>$message</p><form method='post' action='?import=blogger&amp;noheader=true'><p class='submit' style='text-align:left;'><input type='submit' class='button' value='$submit' name='restart' /></p></form></div>";
+            }
+        }
+
+        function save_vars()
+        {
+            $vars = get_object_vars($this);
+            update_option('blogger_importer', $vars);
+
+            return !empty($vars);
+        }
+
+        function comment_exists($post_id, $comment_author, $comment_date)
+        {
+            //Do we have 2 comments for the same author at the same time, on the same post?
+            //returns comment id
+            global $wpdb;
+
+            $comment_author = stripslashes($comment_author);
+            $comment_date = stripslashes($comment_date);
+
+            return $wpdb->get_var($wpdb->prepare("SELECT comment_ID FROM $wpdb->comments
+			WHERE comment_post_ID = %s and comment_author = %s AND comment_date = %s", $post_id, $comment_author, $comment_date));
+        }
+
+    }
+
+    class BloggerEntry
+    {
+        var $links = array();
+        var $categories = array();
+    }
+
 } // class_exists( 'WP_Importer' )
 
-function blogger_importer_init() {
-    load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+function blogger_importer_init()
+{
+    load_plugin_textdomain('blogger-importer', false, dirname(plugin_basename(__file__)) . '/languages');
+
+    $blogger_import = new Blogger_Import();
+    register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import categories, posts and comments then maps users from a Blogger blog.', 'blogger-importer'), array($blogger_import, 'start'));
+
 }
-add_action( 'init', 'blogger_importer_init' );
+add_action('admin_init', 'blogger_importer_init');
