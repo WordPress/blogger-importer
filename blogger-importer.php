@@ -2,7 +2,7 @@
 /*
 Plugin Name: Blogger Importer
 Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
-Description: Import posts, comments and tags from a Blogger blog and migrate authors to Wordpress users.
+Description: Import posts, comments, and tags from a Blogger blog and migrate authors to Wordpress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.5
