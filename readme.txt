@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: wordpressdotorg, Otto42, workshopshed, SergeyBiryukov, rmccue
+Contributors: wordpressdotorg, Otto42, Workshopshed, SergeyBiryukov, rmccue
 Donate link: 
 Tags: importer, blogger
 Requires at least: 3.0
