@@ -96,7 +96,6 @@ The importer uses the SimplePie classes to process the data, these in turn use a
 == Changelog ==
 
 = 0.5 =
-Andy from Workshopshed 
 * Merged in fix by SergeyBiryukov http://core.trac.wordpress.org/ticket/16012
 * Merged in rmccue change to get_total_results to also use SimplePie from http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
 * Reviewed in rmccue's changes in http://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff issues with date handling functions so skipped those
@@ -105,8 +104,7 @@ Andy from Workshopshed
 * Fixed typo in oauth_get
 * Added screen_icon() to all pages
 * Added GeoTags as per spec on http://codex.wordpress.org/Geodata 
-* Change by Otto42, rmccue to use Simplepie XML processing rather than Atomparser, http://core.trac.wordpress.org/ticket/14525 ref: http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
-  this also fixes http://core.trac.wordpress.org/ticket/15560 
+* Change by Otto42, rmccue to use Simplepie XML processing rather than Atomparser, http://core.trac.wordpress.org/ticket/14525 ref: http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff (this also fixes http://core.trac.wordpress.org/ticket/15560)
 * Change by Otto42 to use OAuth rather than AuthSub authentication, should make authentication more reliable
 * Fix by Andy from Workshopshed to load comments and nested comments correctly
 * Fix by Andy from Workshopshed to correctly pass the blogger start-index and max-results parameters to oAuth functions and to process more than one batch http://core.trac.wordpress.org/ticket/19096
