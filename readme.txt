@@ -209,7 +209,6 @@ The following were referenced for implementing the images and links
 * Greek Translation from Stergatou Eleni http://buddypress.org/community/members/lenasterg/
 
 = 0.6 =
-
 * Security enhancement, nonce added to form button on main screen
 
 = 0.5 =
@@ -243,6 +242,6 @@ The following were referenced for implementing the images and links
 
 == Upgrade Notice ==
 
-= 0.6 =
+= 0.7 =
 
 Added support for images and links. Improvements in error handling when connecting to Google. Some bug fixes, see change log. User interface refresh
