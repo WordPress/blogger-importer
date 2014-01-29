@@ -7,7 +7,7 @@ Description: Imports posts, comments, images and tags from a Blogger blog then m
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.7
-License: GPL v2
+License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
