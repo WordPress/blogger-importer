@@ -175,6 +175,9 @@ The following were referenced for implementing the images and links
 
 == Changelog ==
 
+= 0.8 =
+* Fixed issue with the authors form not showing a the list of authors for a blog
+
 = 0.7 =
 * Fixed issue with drafts not being imported in the right state 
 * Added extra error handling for get_oauth_link to stop blank tokens being sent to the form
