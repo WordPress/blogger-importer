@@ -69,20 +69,7 @@ if (!class_exists('CommentEntry'))
         {
             //Do we have 2 comments for the same author at the same time, on the same post?
             //returns comment id
-            
-            //Updated to first check the internal id
-            //Can we use get_comments here?
-            global $wpdb;
-            $c = $this->get_comment_by_oldID($this->self);
-            if ($c <> 0) {
-                return ($c);
-                }
-            else {
-                $commentID = $wpdb->get_var($wpdb->prepare("SELECT comment_ID FROM $wpdb->comments
-			                                             WHERE comment_post_ID = %s and comment_author = %s AND comment_date = %s",
-                                                $this->post_ID, $this->author, $this->updated));
-                return ($commentID);
-            }
+            return ($this->get_comment_by_oldID($this->self));
         }
         
         function get_comment_by_oldID($oldID) {
@@ -91,6 +78,7 @@ if (!class_exists('CommentEntry'))
             global $wpdb;
             $query = "SELECT c.comment_id FROM $wpdb->commentmeta m inner join $wpdb->comments c on c.comment_ID = m.comment_id where meta_key = 'blogger_internal' and meta_value = '%s' LIMIT 0 , 1";
             $c = (int) $wpdb->get_var( $wpdb->prepare($query, $oldID) );
+            
             return $c;            
         }
 
