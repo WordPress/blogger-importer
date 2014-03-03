@@ -56,7 +56,7 @@ You can now remove the importer plugin if you no longer need to use it.
 
 = How do I re-import? =
 
-Press the clear account information button, then re-connect to blogger and re-import, the importer is designed not to re-import the same posts. If you need to do a full re-import then delete the posts and then empty the trash before re-importing.
+From the list of blogs, press refresh blog list, this should update the counts and re-enable the import button. The importer is designed not to re-import the same posts. If you need to do a full re-import then delete the posts and then empty the trash before re-importing.
 
 = Once I've imported the posts do I need to keep the plugin? =
 
