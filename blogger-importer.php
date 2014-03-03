@@ -276,13 +276,8 @@ if (class_exists('WP_Importer'))
 
         function get_author_form($blog)
         {
-            global $current_user; //This is not used, perhaps it should be the "default" for the call to get_user_options?
-
-            if (!isset($blog->authors))
-            {
-                $blog->get_authors();
-                $blog->save_vars();
-            }
+            //Present a form to the users so they can re-map the imported authors to Wordpress users.
+            $blog->get_authors();
 
             $directions = sprintf(__('All posts were imported with the current user as author. Use this form to move each Blogger user&#8217;s posts to a different WordPress user. You may <a href="%s">add users</a> and then return to this page and complete the user mapping. This form may be used as many times as you like until you activate the &#8220;Restart&#8221; function below.',
                 'blogger-importer'), 'users.php');
@@ -295,8 +290,6 @@ if (class_exists('WP_Importer'))
 
             foreach ($blog->authors as $i => $author)
                 $rows .= "<tr><td><label for='authors[$i]'>{$author[0]}</label></td><td><select name='authors[$i]' id='authors[$i]'>" . $this->get_user_options($author[1]) . "</select></td></tr>";
-
-            
 
             return "<div class='wrap'>" . screen_icon() . "<h2>$heading</h2><h3>$blogtitle</h3><p>$directions</p><form action='index.php?import=blogger&amp;noheader=true&saveauthors=1' method='post'><input type='hidden' name='blog' value='" .
                 esc_attr($blog->ID) . "' />".wp_nonce_field( 'blogger-importer-saveauthors', 'blogger-importer-saveauthors-nonce',true,false )."<table cellpadding='5'><thead><td>$mapthis</td><td>$tothis</td></thead>$rows<tr><td></td><td class='submit'><input type='submit' class='button authorsubmit' value='$submit' /></td></tr></table></form></div>";

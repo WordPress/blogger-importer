@@ -493,14 +493,15 @@ class Blogger_Importer_Blog
         
         function get_authors()
         {
+            //Get a list of blogger authors who created the posts
+            //Use a subquery rather than 2 statements to avoid issue with prepare not being able to sanitise an array of integers, also protects us if the post_id type changes
             global $wpdb;
             global $current_user;
         
-                $post_ids = (array )$wpdb->get_col($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'blogger_blog' AND meta_value = %s", $this->host));
-                $post_ids = join(',', $post_ids);
-                $authors = (array )$wpdb->get_col($wpdb->prepare("SELECT DISTINCT meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN (%s)",$post_ids));
+                $authors = (array )$wpdb->get_col($wpdb->prepare("SELECT DISTINCT meta_value FROM $wpdb->postmeta WHERE meta_key = 'blogger_author' AND post_id IN (SELECT post_id FROM $wpdb->postmeta WHERE meta_key = 'blogger_blog' AND meta_value = %s)",$this->host));
                 
                 $this->authors = array_map(null, $authors, array_fill(0, count($authors), $current_user->ID));
+                $this->save_vars();
         }
         
         /*
