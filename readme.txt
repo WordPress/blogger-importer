@@ -143,6 +143,7 @@ The importer is designed to download the high resolution images where they are a
 == Screenshots ==
 
 1. Import in progress
+2. Custom Fields added to Posts, Attachements and Comments
 
 == Reference ==
 
