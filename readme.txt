@@ -4,7 +4,7 @@ Donate link:
 Tags: importer, blogger
 Requires at least: 3.0
 Tested up to: 3.81
-Stable tag: 0.6
+Stable tag: 0.7
 License: GPLv2 or later
 
 Imports posts, images, comments, and categories (blogger tags) from a Blogger blog then migrates authors to WordPress users.
