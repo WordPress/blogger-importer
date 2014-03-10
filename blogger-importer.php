@@ -111,6 +111,7 @@ if (class_exists('WP_Importer'))
             $errormsg = __('Error occurred getting OAuth tokens from Google', 'blogger-importer');
 
             echo "
+                       
 		<div class='wrap'>
 		" . screen_icon() . "
 		<h2>$title</h2>

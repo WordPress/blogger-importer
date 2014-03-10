@@ -4,6 +4,7 @@
  * @author Andy Clark
  * @copyright 2013
  * A data object representing the data to be added into Wordpress 
+ * 10/3/2014 Added errorhandling to cope with comments that don't link to a post
  */
 
 if (!class_exists('CommentEntry'))
@@ -20,7 +21,9 @@ if (!class_exists('CommentEntry'))
                     if ($link['rel'] == 'alternate')
                     {
                         $parts = parse_url($link['href']);
-                        $this->old_permalink = $parts['fragment'];
+                        if (isset($parts['fragment'])){
+                            $this->old_permalink = $parts['fragment'];
+                        }
                     }
                     //Parent post for nested links
                     if ($link['rel'] == 'related')
