@@ -49,8 +49,12 @@ class Blogger_Importer_Blog
         {
             //AGC: Moved the parameter parsing out to start and the importing into separate functions.
             //25/1/2013 Suppress post revisions whilst we are importing
+            //10/3/2014 Added start action as proposed by katazina
             remove_post_type_support('post', 'revisions');
             
+            if (!$this->posts_done && !$this->comments_done)
+                do_action('import_start', 'blogger');
+                
             $this->importer_started = time();
             
             if (!$this->import_posts($connector))
