@@ -171,7 +171,7 @@ if (class_exists('WP_Importer'))
                 $blog->title = $item->get_title();
                 $blog->summary = $item->get_description();
 
-                //ID is of the form tag:blogger.com,1999:blog-417730729915399755
+                //id is of the form tag:blogger.com,1999:blog-417730729915399755
                 //We need that number from the end
                 $rawid = explode('-', $item->get_id());
                 $blog->id = $rawid[count($rawid) - 1];
@@ -235,18 +235,12 @@ if (class_exists('WP_Importer'))
   
         /**
          * A clean return function for Ajax calls,
-         * discards any debug messages or other fluff already sent
-         * N.B. "headers already sent" errors occurring in debug, perhaps need to turn on output buffering??
-         * Note this might not be an issue with the switch to "proper" ajax handling
          * http://www.dagondesign.com/articles/wordpress-hook-for-entire-page-using-output-buffering/
+         * 11/3/2014 Simplified this as the output buffer cleaning rarely seemed to work
          */
         
         function ajax_die($data)
         {
-            if (ob_get_level() != 0) {
-                ob_clean();
-            }
-            
            	header( 'Content-Type: text/plain' );
             echo $data;
             exit;

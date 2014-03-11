@@ -8,7 +8,9 @@
 
 class Blogger_Importer_Blog 
 {
-    var $ID;
+    //We have 2 fields with the same name but different case, that should be eliminated, however need to ensure can be upgraded ok
+    var $ID; //Wordpress ID for the blog
+    var $id; //Blogger ID for the blog
     var $comments_url;
     
         function init_defaults($totalposts,$totalcomments)
@@ -798,15 +800,9 @@ class Blogger_Importer_Blog
         function save_vars()
         {
             $vars = get_object_vars($this);
-            //http://core.trac.wordpress.org/ticket/13480
-            //Calling update options multiple times in a page (or ajax call) means that the cache kicks in and does not save to DB??
-          
             //Store each blog it it's own setting so that we retrieve and save less data each time it updates the stats
-            if (!update_option('blogger_importer_blog_'.$this->ID, $vars)) {
-                    Blogger_Import::_log('Error saving blogger status');
-                    Blogger_Import::_log(var_export(get_object_vars($this),true));
-            };
-            
+            //11/3/2014 Simplified function to avoid logging unneccesary errors
+            update_option('blogger_importer_blog_'.$this->ID, $vars);            
             return !empty($vars);  
         }
     
