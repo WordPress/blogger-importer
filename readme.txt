@@ -100,7 +100,7 @@ No, WordPress and Blogger handle the permalinks differently. However, it is poss
 
 = My posts and comments moved across but some things are stripped out =
 
-The importer uses the SimplePie classes to process the data, these in turn use a Simplepie_Sanitize class to remove potentially malicious code from the source data. If the php-xml module is not installed then this may result in your entire comment text being stripped out. 
+The importer uses the SimplePie classes to process the data, these in turn use a Simplepie_Sanitize class to remove potentially malicious code from the source data. If the php-xml module is not installed then this may result in your entire comment text being stripped out and the error "PHP Warning: DOMDocument not found, unable to use sanitizer" to appear in your logs. 
 
 = The dashboard is reporting that there are 0 comments in blogger =
 
