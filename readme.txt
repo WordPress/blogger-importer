@@ -179,6 +179,7 @@ The following were referenced for implementing the images and links
 These actions and filters have been added so that you can extend the functionality of the importer without needing to modify the code.
 
 Action - import_start - This is run when the import starts processing the records for a new blog
+
 Action - import_done - This is run when the import finishes processing the records for a blog.
 
 Filter - blogger_importer_congrats - Passes the list of options shown to the user when the blog is complete, options can be added or removed.
