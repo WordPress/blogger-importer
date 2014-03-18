@@ -120,7 +120,7 @@ Try the core control plugin as mentioned above. Also you try changing the consta
 
 = Why does it keep stopping? = 
 
-The importer uses JQuery to process it's form so problems with it not refreshing or stalling could be due to an incompatibility with another plugin, disable any other plugins and see if the problem persists.
+The imported is not expect to stop, so this could be to an incompatibility with another plugin, disable any other plugins and see if the problem persists. Also check your error log to see if any error messages have been reported.
 
 = It does not seem to be processing the images =
 
@@ -172,11 +172,26 @@ The following were referenced for implementing the images and links
 * Review using get_posts or get_comments with the appropriate parameters to get the counts and exists instead of using SQL
 * Incorrect notice, PHP Notice: The data could not be converted to UTF-8. You MUST have either the iconv or mbstring extension installed. This occurs even when Iconv is installed, could be related to Blogger reporting 0 comments
 * When the importer is running it's not possible to stop it using the stop button
+* Blogger's count of comments include those not linked to a post e.g. the post has been deleted.
+
+== Filters and Actions ==
+
+These actions and filters have been added so that you can extend the functionality of the importer without needing to modify the code.
+
+Action - import_start - This is run when the import starts processing the records for a new blog
+Action - import_done - This is run when the import finishes processing the records for a blog.
+
+Filter - blogger_importer_congrats - Passes the list of options shown to the user when the blog is complete, options can be added or removed.
 
 == Changelog ==
 
 = 0.8 =
 * Fixed issue with the authors form not showing a the list of authors for a blog
+* Simplified check for duplicate comments
+* Code simplified for get_authors and get_author_form
+* Fixed issue with wpdb prepare and integer keys by switching to a sub select query
+* Make comment handling more robust
+* Simplified functions to reduce messages in the log
 
 = 0.7 =
 * Fixed issue with drafts not being imported in the right state 
@@ -246,6 +261,6 @@ The following were referenced for implementing the images and links
 
 == Upgrade Notice ==
 
-= 0.7 =
+= 0.8 =
 
-Added support for images and links. Improvements in error handling when connecting to Google. Some bug fixes, see change log. User interface refresh
+Some bug fixes and simplified code see change log.
