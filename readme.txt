@@ -126,7 +126,7 @@ The imported is not expect to stop, so this could be to an incompatibility with 
 
 Check you've not run out of disk space on your server. Because Wordpress stores the files in multiple resolutions one image might take up as much as 250kb spread across 5 files of different sizes.
 
-= How do I make the images bigger or smaller? =
+= How do I make the images bigger or smaller? / My images are fuzzy =
 
 The importer will attempt to download a large version of images but it displays them on the blog at the medium size. If you go into your settings->media options then you can display a different size "medium" image by default. You can't make this bigger than the file that has been downloaded which is where the next setting comes in.  
 
@@ -135,6 +135,8 @@ The default size for the large images is 1024, you can change this to an even la
 const LARGE_IMAGE_SIZE = '1024';
 
 The file downloaded won't be bigger than the origional file so if it was only 800x600 to start with then it won't be any bigger than that.
+
+If your origional blog has hardcoded width and height values that are larger than the medium size settings then that might result in your images becoming fuzzy. 
 
 = I've run out of disk space processing the images = 
 
