@@ -124,7 +124,7 @@ The imported is not expect to stop, so this could be to an incompatibility with 
 
 = It does not seem to be processing the images =
 
-Check you've not run out of disk space on your server. Because Wordpress stores the files in multiple resolutions one image might take up as much as 250kb spread across 5 files of different sizes.
+The most common reasons for this are lack of memory and timeouts, these should appear in your error log. Also check you've not run out of disk space on your server. Because Wordpress stores the files in multiple resolutions one image might take up as much as 250kb spread across 5 files of different sizes.
 
 = How do I make the images bigger or smaller? / My images are fuzzy =
 
