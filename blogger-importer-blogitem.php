@@ -108,7 +108,7 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
         }
 
         //Don't Sanitize the ID, the default get_id was cleaning our IDs and that meant that nested comments did not work
-        function get_id()
+        function get_id($hash = false)
         {
             if ($return = $this->get_item_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'id'))
             {
@@ -117,10 +117,10 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
         }
         
         //Prefiltered links
-        function get_links($linktypes) {
+        function get_links($rel = 'alternate') {
         
             $mylinks = array();
-            foreach ($linktypes as $type)
+            foreach ($rel as $type)
             {
                 $links =parent::get_links($type);
 
