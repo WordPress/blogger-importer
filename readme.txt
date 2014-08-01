@@ -37,6 +37,12 @@ The Blogger Importer imports your blog data from a Google Blogger site into a Wo
 The importer connects your server to the blogger server to copy across the posts. For this to work you need to have connectivity from the server to the internet and also have at least one of the remote access protocols enabled, e.g. curl, streams or fsockopen. You can use the Core Control plugin to test if these are working correctly. The importer connects to Google over a secure connection so OpenSSL needs to be enabled on your server. 
 The importer uses the SimplePie classes to read and process the data from blogger so you will need the php-xml module installed on your webserver.
 
+= Preparation =
+
+It is strongly recommended that you **disable all other plugins and caching** during the import.
+
+This will ensure that the information transfers across as smoothly as possible and that posts and comments are correctly transferrred.
+
 = How to use =
 
 1. Blogger Importer is available from the WordPress Tools->Import screen.
