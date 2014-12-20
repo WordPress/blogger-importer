@@ -485,12 +485,12 @@ class Blogger_Importer_Blog
             }
 
             $p2 = sprintf(__('%d of %d', 'blogger-importer'), $this->posts_done, $this->total_posts);
-            $p3 = sprintf(__('%d posts skipped', 'blogger-importer'), $this->posts_skipped);
+            $p3 = sprintf(_n('%d post skipped', '%d posts skipped', $this->posts_skipped, 'blogger-importer'), $this->posts_skipped);
             $c1 = $this->total_comments == 0 ? 100 : ($this->comments_done / $this->total_comments) * 100;
             $c2 = sprintf(__('%d of %d', 'blogger-importer'), $this->comments_done, $this->total_comments);
-            $c3 = sprintf(__('%d comments skipped', 'blogger-importer'), $this->comments_skipped);
+            $c3 = sprintf(_n('%d comment skipped', '%d comments skipped', $this->comments_skipped, 'blogger-importer'), $this->comments_skipped);
             $i1 = isset($this->images_done) ? (int)$this->images_done : 0; 
-            $i3 = sprintf(__('%d images skipped', 'blogger-importer'), $this->images_skipped);
+            $i3 = sprintf(_n('%d image skipped', '%d images skipped', $this->images_skipped, 'blogger-importer'), $this->images_skipped);
             
             $l1 = isset($this->links_done) ? (int)$this->links_done : 0;
 
