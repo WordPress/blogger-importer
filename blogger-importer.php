@@ -473,7 +473,7 @@ class Blogger_Importer extends WP_Importer {
 
 			// Nested comment?
 			if ( isset($commententry->related) ) {
-				$commententry->parentcommentid = CommentEntry::get_comment_by_oldID($commententry->related);
+				$commententry->parentcommentid = $commententry->get_comment_by_oldID($commententry->related);
 			}
 
 			//Perhaps could log errors here?
@@ -574,7 +574,6 @@ class Blogger_Importer extends WP_Importer {
 						$importedcontent = $newcontent;
 						$img_count++;
 					} else {
-						Blogger_Importer::_log($newcontent);
 						$imagesskipped++;
 					}
 				}
@@ -654,25 +653,25 @@ class Blogger_Importer extends WP_Importer {
 
 		if (!$att_id = $this->image_exists($lowrez)) {
 			//Option to add a timeout to download_url, but don't use the wp_remote_get timeout as that's much shorter than the default here of 300s
-			$tmp = download_url($highrez);
+			$tmp = @download_url($highrez);
 
-			if (is_wp_error($tmp)) {@
-				unlink($tmp); // clean up, copied this from other examples but how is this supposed to work if $tmp is an error??
+			if (is_wp_error($tmp)) {
+				@unlink($tmp); // clean up, copied this from other examples but how is this supposed to work if $tmp is an error??
 				//Don't exit as can still try the small image
 			}
 
 			// If the highrez was not an image then try the lowrex
 			if (!$this->is_image($tmp, $highrez)) {
 				$highrezispage = true; //That image was not valid
-				$tmp = download_url($lowrez); // Option to add a timeout here
+				$tmp = @download_url($lowrez); // Option to add a timeout here
 
-				if (is_wp_error($tmp)) {@
-					unlink($tmp); // clean up
+				if (is_wp_error($tmp)) {
+					@unlink($tmp); // clean up
 					return $tmp; // output wp_error
 				}
 
-				if (!$this->is_image($tmp, $lowrez)) {@
-					unlink($tmp); // clean up None of items are actually images, for example might be a single pixel, deliberately filtered out or a 404 error?
+				if (!$this->is_image($tmp, $lowrez)) {
+					@unlink($tmp); // clean up None of items are actually images, for example might be a single pixel, deliberately filtered out or a 404 error?
 					return new WP_Error('No Images', __('None of the images are valid', 'blogger-importer'), $data = array($lowrez_old, $highrez_old));
 				}
 			}
@@ -682,8 +681,8 @@ class Blogger_Importer extends WP_Importer {
 			$file_array = array('name' => $new_name, 'tmp_name' => $tmp);
 
 			$att_id = media_handle_sideload($file_array, $post_id, $description, array('post_excerpt' => $description));
-			if (is_wp_error($att_id)) {@
-				unlink($file_array['tmp_name']);
+			if (is_wp_error($att_id)) {
+				@unlink($file_array['tmp_name']);
 				return $att_id;
 			}
 
@@ -708,10 +707,12 @@ class Blogger_Importer extends WP_Importer {
 
 		//Replace the image strings
 		if (!$highrezispage && $highrez_old != '') {
-			$highrez_new = reset(wp_get_attachment_image_src($att_id, 'full'));
+			$imagesrc = wp_get_attachment_image_src($att_id, 'full');
+			$highrez_new = reset($imagesrc);
 			$postcontent = str_replace($highrez_old, $highrez_new, $postcontent);
 		}
-		$lowrez_new = reset(wp_get_attachment_image_src($att_id, 'medium'));
+		$imagesrc = wp_get_attachment_image_src($att_id, 'medium');
+		$lowrez_new = reset($imagesrc);
 		$postcontent = str_replace($lowrez_old, $lowrez_new, $postcontent);
 
 		//Set the first image to be the post thumbnail (zero index)
