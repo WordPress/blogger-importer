@@ -1,8 +1,5 @@
 <?php
-
 /**
- * @author Andy Clark
- * @copyright 2013
  * Ref:http://wpengineer.com/2426/wp_list_table-a-step-by-step-guide/
  * Class to render the blog table
  */

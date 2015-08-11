@@ -1,8 +1,5 @@
 <?php
-
 /**
- * @author Andy Clark
- * @copyright 2013
  * A data object representing the data to be added into Wordpress 
  */
 
