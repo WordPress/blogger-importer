@@ -40,34 +40,17 @@ if ( ! class_exists( 'WP_Importer' ) ) {
  */
 if ( !class_exists( 'Blogger_Importer' ) ) {
 class Blogger_Importer extends WP_Importer {
-	const MAX_RESULTS = 25;          // How many records per GData query (int)
-	const MAX_EXECUTION_TIME = 20;   // How many seconds to let the script run (int)
-	const STATUS_INTERVAL = 3;       // How many seconds between status bar updates (int)
 	const IMPORT_IMG = true;         // Should we import the images (boolean)
-	const REMOTE_TIMEOUT = 5;        // How many seconds to wait until google responds (int)
 	const LARGE_IMAGE_SIZE = '1024'; // The size of large images downloaded (string)
 	const POST_PINGBACK = 0;         // Turn off the post pingback, set to 1 to re-enabled(bool)
 
-	var $id; // WXR attachment ID
+	var $id; // XML attachment ID
 
-	// information to import from WXR file
 	var $authors = array();
-	var $posts = array();
-	var $terms = array();
-	var $categories = array();
-	var $tags = array();
-	var $base_url = '';
 
 	// mappings from old information to new
 	var $processed_authors = array();
 	var $author_mapping = array();
-	var $processed_terms = array();
-	var $processed_posts = array();
-	var $post_orphans = array();
-	var $processed_menu_items = array();
-	var $menu_item_orphans = array();
-	var $missing_menu_items = array();
-	var $url_remap = array();
 
 	function Blogger_Importer() { /* nothing */ }
 
