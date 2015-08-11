@@ -45,24 +45,18 @@ This will ensure that the information transfers across as smoothly as possible a
 
 = How to use =
 
-1. Blogger Importer is available from the WordPress Tools->Import screen.
-1. Press Authorise
-1. If you are not already logged into Google you will be asked to login
-1. You will be asked to grant WordPress access to your Blogger information, to continue press Grant Access
-1. You will be presented with a list of all your blogs
-1. Select the appropriate blog and press the import button
-1. Wait whilst the posts, comments and images are imported
-1. Press the Set Authors button
-1. Select the appropriate mapping for the authors
-1. Review categories, posts and comments
-
-You can now remove the importer plugin if you no longer need to use it.
+1. On your Blogger account, visit the Settings->Other page, and locate the "Export Blog" option. This will download an XML file containing your posts and comments.
+2. In WordPress, the Blogger Importer is available from the Tools->Import menu.
+3. Upload the XML file to WordPress.
+4. The posts will be read and you will be given the option to map the authors of the posts appropriately.
+5. Allow the import to finish.
+6. If the import fails halfway, you can simply retry. Already imported posts will be skipped and not duplicated.
 
 == Frequently Asked Questions ==
 
 = How do I re-import? =
 
-From the list of blogs, press refresh blog list, this should update the counts and re-enable the import button. The importer is designed not to re-import the same posts. If you need to do a full re-import then delete the posts and then empty the trash before re-importing.
+Simply upload the XML file again. Already imported posts will be skipped and not duplicated.
 
 = Once I've imported the posts do I need to keep the plugin? =
 
@@ -108,25 +102,9 @@ No, WordPress and Blogger handle the permalinks differently. However, it is poss
 
 The importer uses the SimplePie classes to process the data, these in turn use a Simplepie_Sanitize class to remove potentially malicious code from the source data. If the php-xml module is not installed then this may result in your entire comment text being stripped out and the error "PHP Warning: DOMDocument not found, unable to use sanitizer" to appear in your logs. 
 
-= The dashboard is reporting that there are 0 comments in blogger =
-
-This can occur if your blogger blog is set to private.
-
 = The comments don't have avatars =
 
-This is a know limitation of the data that is provided from Blogger. The Wordpress system uses Gravatar to provide the images for the comment avatars. This relies the email of the person making the comment. Blogger does not provide the email address in the data feed so Wordpress does not display the correct images. You can manually update or script change to the comment email addresses to work around this issue.
-
-= How do I diagnose communication issues? =
-
-If you've got issues with the blogger importer talking to Google then you can use the Core Control plugin to first check that your communication is working with the HTTP Module and if that is all ok then check the HTTP Logging Module to see if any of the remote calls to Google are returning errors. Also the OAuth Playground is a good way to test your access to the blogger data. http://googlecodesamples.com/oauth_playground/
-
-= I'm getting timeouts connecting to Google =
-
-Try the core control plugin as mentioned above. Also you try changing the constant REMOTE_TIMEOUT in the blogger-importer.php file to be a larger number of seconds.
-
-= Why does it keep stopping? = 
-
-The imported is not expect to stop, so this could be to an incompatibility with another plugin, disable any other plugins and see if the problem persists. Also check your error log to see if any error messages have been reported.
+This is a known limitation of the data that is provided from Blogger. The Wordpress system uses Gravatar to provide the images for the comment avatars. This relies the email of the person making the comment. Blogger does not provide the email address in the data feed so Wordpress does not display the correct images. You can manually update or script change to the comment email addresses to work around this issue.
 
 = It does not seem to be processing the images =
 
@@ -148,15 +126,8 @@ If your origional blog has hardcoded width and height values that are larger tha
 
 The importer is designed to download the high resolution images where they are available. You can either disable the downloading of images or you can change the constant LARGE_IMAGE_SIZE string in the blogger-importer.php file to swap the links with a smaller image. 
 
-== Screenshots ==
-
-1. Import in progress
-2. Custom Fields added to Posts, Attachements and Comments
-
 == Reference ==
 
-* https://developers.google.com/blogger/docs/1.0/developers_guide_php
-* https://developers.google.com/gdata/articles/oauth
 * http://www.simplepie.org/
 
 The following were referenced for implementing the images and links
@@ -175,7 +146,6 @@ The following were referenced for implementing the images and links
 
 * Some users have reported that their IFrames are stripped out of the post content.
 * Requests for better performance of larger transfers and tranfers of images
-* Drop the check for OpenSSL and Blogger_OAuthSignatureMethod_RSA_SHA1 is not used by any other code in the plugin and can probably just be removed.
 * Review of behavior when it re-imports, partiularly are the counts correct
 * Review using get_posts or get_comments with the appropriate parameters to get the counts and exists instead of using SQL
 * Incorrect notice, PHP Notice: The data could not be converted to UTF-8. You MUST have either the iconv or mbstring extension installed. This occurs even when Iconv is installed, could be related to Blogger reporting 0 comments
@@ -193,6 +163,9 @@ Action - import_done - This is run when the import finishes processing the recor
 Filter - blogger_importer_congrats - Passes the list of options shown to the user when the blog is complete, options can be added or removed.
 
 == Changelog ==
+
+= 0.9 =
+* Complete rewrite to use XML files instead.
 
 = 0.8 =
 * Fixed issue with the authors form not showing a the list of authors for a blog
