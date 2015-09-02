@@ -2,7 +2,7 @@
 /*
 Plugin Name: Blogger Importer
 Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
-Description: Imports posts, comments, images and tags from a Blogger blog then migrates authors to WordPress users.
+Description: Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.9
@@ -906,6 +906,6 @@ function blogger_importer_init() {
 	 * @global WP_Import $wp_import
 	 */
 	$GLOBALS['wp_import'] = new Blogger_Importer();
-	register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import categories, posts, images and comments then maps users from a Blogger blog.', 'blogger-importer'), array( $GLOBALS['wp_import'], 'dispatch' ) );
+	register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.', 'blogger-importer'), array( $GLOBALS['wp_import'], 'dispatch' ) );
 }
 add_action( 'admin_init', 'blogger_importer_init' );
