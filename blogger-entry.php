@@ -1,6 +1,6 @@
 <?php
 /**
- * A data object representing the data to be added into Wordpress 
+ * A data object representing the data to be added into WordPress 
  */
 
 if (!class_exists('BloggerEntry'))
