@@ -84,11 +84,11 @@ This version of the importer imports these too, but you can disable this via a s
 
 = What size are the images? =
 
-The importer will attempt to download the a large version of the file if one is available. This is controlled by the setting "LARGE_IMAGE_SIZE" and defaults to a width of 1024. The display size of the images is the "medium" size of images as defined on Wordpress. You can change this in advance if you want to show a different size. 
+The importer will attempt to download the a large version of the file if one is available. This is controlled by the setting "LARGE_IMAGE_SIZE" and defaults to a width of 1024. The display size of the images is the "medium" size of images as defined on WordPress. You can change this in advance if you want to show a different size. 
 
 = How do I know what images are skipped? =
 
-If you hover over the progress bar for images it will tell you how many images are skipped. To see the filenames of these images you will need to enable Wordpress debugging to log to file. See http://codex.wordpress.org/Debugging_in_WordPress
+If you hover over the progress bar for images it will tell you how many images are skipped. To see the filenames of these images you will need to enable WordPress debugging to log to file. See http://codex.wordpress.org/Debugging_in_WordPress
 
 = What about future posts? =
 
@@ -104,11 +104,11 @@ The importer uses the SimplePie classes to process the data, these in turn use a
 
 = The comments don't have avatars =
 
-This is a known limitation of the data that is provided from Blogger. The Wordpress system uses Gravatar to provide the images for the comment avatars. This relies the email of the person making the comment. Blogger does not provide the email address in the data feed so Wordpress does not display the correct images. You can manually update or script change to the comment email addresses to work around this issue.
+This is a known limitation of the data that is provided from Blogger. The WordPress system uses Gravatar to provide the images for the comment avatars. This relies the email of the person making the comment. Blogger does not provide the email address in the data feed so WordPress does not display the correct images. You can manually update or script change to the comment email addresses to work around this issue.
 
 = It does not seem to be processing the images =
 
-The most common reasons for this are lack of memory and timeouts, these should appear in your error log. Also check you've not run out of disk space on your server. Because Wordpress stores the files in multiple resolutions one image might take up as much as 250kb spread across 5 files of different sizes.
+The most common reasons for this are lack of memory and timeouts, these should appear in your error log. Also check you've not run out of disk space on your server. Because WordPress stores the files in multiple resolutions one image might take up as much as 250kb spread across 5 files of different sizes.
 
 = How do I make the images bigger or smaller? / My images are fuzzy =
 
@@ -186,7 +186,7 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Added setting author on images
 * Added error handling in get_oauth_link() as suggested by daniel_henrique ref http://core.trac.wordpress.org/ticket/21163
 * Added a check for OpenSSL as suggested by digitalsensus
-* Fixed issue with SimplePie santizer not getting set in Wordpress 3.5
+* Fixed issue with SimplePie santizer not getting set in WordPress 3.5
 * Added filter for the congrats function 'blogger_importer_congrats' so other plugins can add in new options
 * Converted manual HTML table to WP_LIST_TABLE
 * Moved inline Javascript to separate file to aid debugging and testing

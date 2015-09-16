@@ -2,12 +2,14 @@
 /*
 Plugin Name: Blogger Importer
 Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
-Description: Imports posts, comments, images and tags from a Blogger blog then migrates authors to WordPress users.
+Description: Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.9
 License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+Text Domain: blogger-importer
+Domain Path: /languages
 */
 
 if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
@@ -899,13 +901,13 @@ class Blogger_Importer extends WP_Importer {
 } // class_exists( 'Blogger_Importer' )
 
 function blogger_importer_init() {
-	load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 	/**
 	 * WordPress Importer object for registering the import callback
 	 * @global WP_Import $wp_import
 	 */
 	$GLOBALS['wp_import'] = new Blogger_Importer();
-	register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import categories, posts, images and comments then maps users from a Blogger blog.', 'blogger-importer'), array( $GLOBALS['wp_import'], 'dispatch' ) );
+	register_importer('blogger', __('Blogger', 'blogger-importer'), __('Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.', 'blogger-importer'), array( $GLOBALS['wp_import'], 'dispatch' ) );
 }
 add_action( 'admin_init', 'blogger_importer_init' );
