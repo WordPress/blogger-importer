@@ -8,6 +8,8 @@ Author URI: http://wordpress.org/
 Version: 0.9
 License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+Text Domain: blogger-importer
+Domain Path: /languages
 */
 
 if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
@@ -899,7 +901,7 @@ class Blogger_Importer extends WP_Importer {
 } // class_exists( 'Blogger_Importer' )
 
 function blogger_importer_init() {
-	load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	load_plugin_textdomain( 'blogger-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 	/**
 	 * WordPress Importer object for registering the import callback
