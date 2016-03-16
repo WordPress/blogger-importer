@@ -665,7 +665,7 @@ class Blogger_Importer extends WP_Importer {
 
 			$file_array = array('name' => $new_name, 'tmp_name' => $tmp);
 
-			$att_id = media_handle_sideload($file_array, $post_id, $description, array('post_excerpt' => $description));
+			$att_id = media_handle_sideload($file_array, $post_id, $description);
 			if (is_wp_error($att_id)) {
 				@unlink($file_array['tmp_name']);
 				return $att_id;
