@@ -54,8 +54,6 @@ class Blogger_Importer extends WP_Importer {
 	var $processed_authors = array();
 	var $author_mapping = array();
 
-	function Blogger_Importer() { /* nothing */ }
-
 	/**
 	 * Registered callback function for the Blogger Importer
 	 *
