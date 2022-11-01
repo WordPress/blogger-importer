@@ -21,7 +21,7 @@ define( 'IMPORT_DEBUG', false );
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
 
-require_once ABSPATH . WPINC . '/class-feed.php';
+require_once ABSPATH . WPINC . '/class-simplepie.php';
 
 // Custom classes used by importer
 require_once dirname( __FILE__ ) . '/blogger-importer-sanitize.php';
