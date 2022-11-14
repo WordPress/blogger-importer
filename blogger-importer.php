@@ -592,7 +592,7 @@ class Blogger_Importer extends WP_Importer {
 
 		if ($large) {
 			// For images on blogger we can swap /sXXX/ with for example /s1600/ to get a larger file.
-			// Use a standardised large size so we can control quality vs filesize.
+			// Use a standardized large size so we can control quality vs filesize.
 			$pattern = '/(\/)(s\d*)(\/)/i';
 			$replacement = '$1s'.Blogger_Importer::LARGE_IMAGE_SIZE.
 			'$3';

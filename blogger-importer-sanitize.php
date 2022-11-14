@@ -49,7 +49,7 @@ class Blogger_Importer_Sanitize extends SimplePie_Sanitize
         //Simplified function
         $data = trim($data);
         
-        // Normalise tags (string replacement is case sensitive)
+        // Normalize tags (string replacement is case sensitive)
         $data = preg_replace_callback('|<(/?[A-Z]+)|', array(&$this, '_normalize_tag'), $data);
 
         // Remappings
