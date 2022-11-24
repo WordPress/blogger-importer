@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
 Description: Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.9
+Version: 0.9.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Text Domain: blogger-importer
@@ -21,7 +21,11 @@ define( 'IMPORT_DEBUG', false );
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
 
-require_once ABSPATH . WPINC . '/class-feed.php';
+if ( version_compare( get_bloginfo('version'), '4.7.0', '>=' ) ) {
+    require_once ABSPATH . WPINC . '/class-simplepie.php';
+} else {
+    require_once ABSPATH . WPINC . '/class-feed.php';
+}
 
 // Custom classes used by importer
 require_once dirname( __FILE__ ) . '/blogger-importer-sanitize.php';
@@ -42,17 +46,26 @@ if ( ! class_exists( 'WP_Importer' ) ) {
  */
 if ( !class_exists( 'Blogger_Importer' ) ) {
 class Blogger_Importer extends WP_Importer {
-	const IMPORT_IMG = true;         // Should we import the images (boolean)
+	const IMPORT_IMG       = true; // Should we import the images (boolean)
 	const LARGE_IMAGE_SIZE = '1024'; // The size of large images downloaded (string)
-	const POST_PINGBACK = 0;         // Turn off the post pingback, set to 1 to re-enabled(bool)
+	const POST_PINGBACK    = 0; // Turn off the post pingback, set to 1 to re-enabled(bool)
 
-	var $id; // XML attachment ID
-
-	var $authors = array();
-
-	// mappings from old information to new
-	var $processed_authors = array();
-	var $author_mapping = array();
+	private $id                = null; // XML attachment ID
+	private $author_mapping    = array();
+	private $authors           = array();
+	private $comments_done     = 0;
+	private $comments_skipped  = 0;
+	private $host              = null;
+	private $images_done       = 0;
+	private $images_progress   = 0;
+	private $images_skipped    = 0;
+	private $import_data       = null;
+	private $links_done        = 0;
+	private $links_progress    = 0;
+	private $posts_done        = 0;
+	private $posts_skipped     = 0;
+	private $processed_authors = array();
+	private $version           = null;
 
 	/**
 	 * Registered callback function for the Blogger Importer
@@ -140,11 +153,11 @@ class Blogger_Importer extends WP_Importer {
 		}
 
 		$this->import_data = $import_data;
-		
+
 		// <link rel='alternate' type='text/html' href='http://example.blogspot.com/'/>
 		$links = $import_data->get_links('alternate');
 		$this->host = parse_url($links[0], PHP_URL_HOST);
-		
+
 		$this->images_progress = 0;
 		$this->images_skipped = 0;
 		$this->links_done = 0;
@@ -199,7 +212,7 @@ class Blogger_Importer extends WP_Importer {
 
 		$this->id = (int) $file['id'];
 		$import_data = $file['file'];
-		
+
 		if ( is_wp_error( $import_data ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'blogger-importer' ) . '</strong><br />';
 			echo esc_html( $import_data->get_error_message() ) . '</p>';
@@ -217,9 +230,9 @@ class Blogger_Importer extends WP_Importer {
 	 * @param array $import_data Data returned by a WXR parser
 	 */
 	function get_authors_from_import( $import_data ) {
-		
+
 		$feed = $this->parse($import_data);
-		
+
 		$authors = $feed->get_authors();
 
 		foreach ($authors as $author) {
@@ -350,7 +363,7 @@ class Blogger_Importer extends WP_Importer {
 	 */
 	function process_posts() {
 		$feed = $this->import_data;
-		
+
 		foreach ( $feed->get_items() as $item ) {
 			// check that it is actually a post first
 			// <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/blogger/2008/kind#post'/>
@@ -362,7 +375,7 @@ class Blogger_Importer extends WP_Importer {
 					break;
 				}
 			}
-			
+
 			// only import posts for now
 			if ( ! $is_post ) {
 				continue;
@@ -378,7 +391,7 @@ class Blogger_Importer extends WP_Importer {
 			$blogentry->title = $item->get_title();
 			$blogentry->content = $item->get_content();
 			$blogentry->geotags = $item->get_geotags();
-			
+
 			// map the post author
 			$blogentry->bloggerauthor = sanitize_user( $item->get_author()->get_name(), true );
 			if ( isset( $this->author_mapping[$blogentry->bloggerauthor] ) )
@@ -388,7 +401,7 @@ class Blogger_Importer extends WP_Importer {
 
 			$blogentry->links = $item->get_links(array('replies', 'edit', 'self', 'alternate'));
 			$blogentry->parselinks();
-			
+
 			foreach ( $cats as $cat ) {
 				if ( false === strpos( $cat, 'http://schemas.google.com') ) {
 					$blogentry->categories[] = $cat;
@@ -405,7 +418,7 @@ class Blogger_Importer extends WP_Importer {
 				$post_id = $blogentry->import();
 				$this->posts_done++;
 			}
-		}                
+		}
 	}
 
 	/**
@@ -413,7 +426,7 @@ class Blogger_Importer extends WP_Importer {
 	 */
 	function process_comments() {
 		$feed = $this->import_data;
-		
+
 		foreach ( $feed->get_items() as $item ) {
 			// check that it is actually a comment first
 			// <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/blogger/2008/kind#comment'/>
@@ -425,12 +438,12 @@ class Blogger_Importer extends WP_Importer {
 					break;
 				}
 			}
-			
+
 			// we only import comments here
 			if ( ! $is_comment ) {
 				continue;
 			}
-			
+
 			$commententry = new CommentEntry();
 
 			$commententry->id = $item->get_id();
@@ -439,10 +452,10 @@ class Blogger_Importer extends WP_Importer {
 			$commententry->author = $item->get_author()->get_name();
 			$commententry->authoruri = $item->get_author()->get_link();
 			$commententry->authoremail = $item->get_author()->get_email();
-			
+
 			$replyto = $item->get_item_tags('http://purl.org/syndication/thread/1.0','in-reply-to');
 			$commententry->source = $replyto[0]['attribs']['']['source'];
-			
+
 			$commententry->source = $item->get_source();
 			$parts = parse_url($commententry->source);
 			$commententry->old_post_permalink = $parts['path']; //Will be something like this '/feeds/417730729915399755/posts/default/8397846992898424746'
@@ -471,14 +484,14 @@ class Blogger_Importer extends WP_Importer {
 			} else {
 				$this->comments_skipped++;
 			}
-		}                
+		}
 	}
 
 	/*
 	* Search for either a linked image or a non linked image within the supplied html
 	* <a href="xxx" yyyy><img src="zzz" ></a> or <img src="zzz" >
 	* Ref: http://www.the-art-of-web.com/php/parse-links/
-	*        "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>"  
+	*        "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>"
 	*      http://wordpress.org/extend/plugins/blogger-image-import/
 	*        "<a[^>]+href\=([\"'`])(.*)\\1[^<]*?<img[^>]*src\=([\"'`])(.*)\\3[^>]*>"
 	*/
@@ -509,7 +522,7 @@ class Blogger_Importer extends WP_Importer {
 				$lowrez[$match[2]] = '';
 			}
 		}
-		
+
 		//Remove any rows from this second set that are already in the first set and merge two sets of results
 		$images = array_merge($lowrez, $highrez);
 		return $images;
@@ -531,10 +544,10 @@ class Blogger_Importer extends WP_Importer {
 		$batchsize = 20;
 
 		$loadedposts = get_posts( array(
-			'meta_key' => 'blogger_blog', 
-			'meta_value' => $this->host, 
-			'posts_per_page' => $batchsize, 
-			'offset' => $postsprocessed, 
+			'meta_key' => 'blogger_blog',
+			'meta_value' => $this->host,
+			'posts_per_page' => $batchsize,
+			'offset' => $postsprocessed,
 			'post_status' => array('draft', 'publish', 'future')
 		));
 
@@ -618,7 +631,7 @@ class Blogger_Importer extends WP_Importer {
 		or
 		<img src="mylowrezimage.jpg">
 
-		If the high resolution (linked) file is not an image then the low resolution version is downloaded.           
+		If the high resolution (linked) file is not an image then the low resolution version is downloaded.
 		*/
 		$lowrez_old = $lowrez;
 		$highrez_old = $highrez;
@@ -666,7 +679,7 @@ class Blogger_Importer extends WP_Importer {
 			if ( empty( $description ) ) {
 				$description = $new_name;
 			}
-			
+
 			$att_id = media_handle_sideload($file_array, $post_id, $description);
 			if (is_wp_error($att_id)) {
 				@unlink($file_array['tmp_name']);
@@ -735,7 +748,7 @@ class Blogger_Importer extends WP_Importer {
 		return $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts p INNER JOIN $wpdb->postmeta m ON p.ID = m.post_id AND meta_key = 'blogger_permalink' WHERE post_type = 'attachment' AND meta_value = %s LIMIT 0 , 1",
 			$lowrez));
 	}
-	
+
         function process_links() {
 		//Update all of the links in the blog
 		global $wpdb;
@@ -842,7 +855,11 @@ class Blogger_Importer extends WP_Importer {
 	// Display import page title
 	function header() {
 		echo '<div class="wrap">';
-		screen_icon();
+
+		if ( version_compare( get_bloginfo( 'version' ), '3.8.0', '<' ) ) {
+			screen_icon();
+		}
+
 		echo '<h2>' . __( 'Import Blogger', 'blogger-importer' ) . '</h2>';
 	}
 
