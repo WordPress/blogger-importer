@@ -1,10 +1,10 @@
 === Blogger Importer ===
 Contributors: wordpressdotorg, Otto42, Workshopshed, SergeyBiryukov, rmccue
-Donate link: 
+Donate link:
 Tags: importer, blogger
 Requires at least: 3.0
-Tested up to: 4.3
-Stable tag: 0.9
+Tested up to: 6.1
+Stable tag: 0.9.1
 License: GPLv2 or later
 
 Imports posts, images, comments, and categories (blogger tags) from a Blogger blog then migrates authors to WordPress users.
@@ -34,7 +34,7 @@ The Blogger Importer imports your blog data from a Google Blogger site into a Wo
 
 = Prerequisites =
 
-The importer connects your server to the blogger server to copy across the posts. For this to work you need to have connectivity from the server to the internet and also have at least one of the remote access protocols enabled, e.g. curl, streams or fsockopen. You can use the Core Control plugin to test if these are working correctly. The importer connects to Google over a secure connection so OpenSSL needs to be enabled on your server. 
+The importer connects your server to the blogger server to copy across the posts. For this to work you need to have connectivity from the server to the internet and also have at least one of the remote access protocols enabled, e.g. curl, streams or fsockopen. You can use the Core Control plugin to test if these are working correctly. The importer connects to Google over a secure connection so OpenSSL needs to be enabled on your server.
 The importer uses the SimplePie classes to read and process the data from blogger so you will need the php-xml module installed on your webserver.
 
 = Preparation =
@@ -62,7 +62,7 @@ Simply upload the XML file again. Already imported posts will be skipped and not
 
 No, you can remove the plugin once you've completed your migration.
 
-= How do I know which posts were imported? = 
+= How do I know which posts were imported? =
 
 Each of the posts loaded is tagged with a meta tags indicating where the posts were loaded from. The permalink will be set to the visible URL if the post was published or the internal ID if it was still a draft or scheduled post
 
@@ -84,7 +84,7 @@ This version of the importer imports these too, but you can disable this via a s
 
 = What size are the images? =
 
-The importer will attempt to download the a large version of the file if one is available. This is controlled by the setting "LARGE_IMAGE_SIZE" and defaults to a width of 1024. The display size of the images is the "medium" size of images as defined on WordPress. You can change this in advance if you want to show a different size. 
+The importer will attempt to download the a large version of the file if one is available. This is controlled by the setting "LARGE_IMAGE_SIZE" and defaults to a width of 1024. The display size of the images is the "medium" size of images as defined on WordPress. You can change this in advance if you want to show a different size.
 
 = How do I know what images are skipped? =
 
@@ -100,7 +100,7 @@ No, WordPress and Blogger handle the permalinks differently. However, it is poss
 
 = My posts and comments moved across but some things are stripped out =
 
-The importer uses the SimplePie classes to process the data, these in turn use a Simplepie_Sanitize class to remove potentially malicious code from the source data. If the php-xml module is not installed then this may result in your entire comment text being stripped out and the error "PHP Warning: DOMDocument not found, unable to use sanitizer" to appear in your logs. 
+The importer uses the SimplePie classes to process the data, these in turn use a Simplepie_Sanitize class to remove potentially malicious code from the source data. If the php-xml module is not installed then this may result in your entire comment text being stripped out and the error "PHP Warning: DOMDocument not found, unable to use sanitizer" to appear in your logs.
 
 = The comments don't have avatars =
 
@@ -112,19 +112,19 @@ The most common reasons for this are lack of memory and timeouts, these should a
 
 = How do I make the images bigger or smaller? / My images are fuzzy =
 
-The importer will attempt to download a large version of images but it displays them on the blog at the medium size. If you go into your settings->media options then you can display a different size "medium" image by default. You can't make this bigger than the file that has been downloaded which is where the next setting comes in.  
+The importer will attempt to download a large version of images but it displays them on the blog at the medium size. If you go into your settings->media options then you can display a different size "medium" image by default. You can't make this bigger than the file that has been downloaded which is where the next setting comes in.
 
-The default size for the large images is 1024, you can change this to an even larger size by changing the following line in the blogger-import.php file. 
+The default size for the large images is 1024, you can change this to an even larger size by changing the following line in the blogger-import.php file.
 
 const LARGE_IMAGE_SIZE = '1024';
 
 The file downloaded won't be bigger than the origional file so if it was only 800x600 to start with then it won't be any bigger than that.
 
-If your origional blog has hardcoded width and height values that are larger than the medium size settings then that might result in your images becoming fuzzy. 
+If your origional blog has hardcoded width and height values that are larger than the medium size settings then that might result in your images becoming fuzzy.
 
-= I've run out of disk space processing the images = 
+= I've run out of disk space processing the images =
 
-The importer is designed to download the high resolution images where they are available. You can either disable the downloading of images or you can change the constant LARGE_IMAGE_SIZE string in the blogger-importer.php file to swap the links with a smaller image. 
+The importer is designed to download the high resolution images where they are available. You can either disable the downloading of images or you can change the constant LARGE_IMAGE_SIZE string in the blogger-importer.php file to swap the links with a smaller image.
 
 == Reference ==
 
@@ -134,7 +134,7 @@ The following were referenced for implementing the images and links
 
 * http://wordpress.org/extend/plugins/remote-images-grabber
 * http://notions.okuda.ca/wordpress-plugins/blogger-image-import/
-* http://wordpress.org/extend/plugins/cache-images/ 
+* http://wordpress.org/extend/plugins/cache-images/
 * http://wordpress.org/extend/plugins/tumblr-importer/
 * http://core.trac.wordpress.org/ticket/14525
 * http://wpengineer.com/1735/easier-better-solutions-to-get-pictures-on-your-posts/
@@ -164,6 +164,9 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 
 == Changelog ==
 
+= 0.9.1 =
+* Add support for WordPress 6.1
+
 = 0.9 =
 * Complete rewrite to use XML files instead.
 
@@ -176,11 +179,11 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Simplified functions to reduce messages in the log
 
 = 0.7 =
-* Fixed issue with drafts not being imported in the right state 
+* Fixed issue with drafts not being imported in the right state
 * Added extra error handling for get_oauth_link to stop blank tokens being sent to the form
 * Restructured code to keep similar steps in single function and to allow testing of components to be done
 * Re-incorporated the "congrats" function and provided a sensible list of what to do next
-* Add a geo_public flag to posts with geotags 
+* Add a geo_public flag to posts with geotags
 * Dropped _normalize_tag after confirming that it's handled by SimplePie
 * Added image handling http://core.trac.wordpress.org/ticket/4010
 * Added setting author on images
@@ -220,9 +223,9 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Tested comments from source blog GMT-8, destination London (currently GMT-1), comment dates transferred correctly.
 * Fixed typo in oauth_get
 * Added screen_icon() to all pages
-* Added GeoTags as per spec on http://codex.wordpress.org/Geodata 
+* Added GeoTags as per spec on http://codex.wordpress.org/Geodata
 * Change by Otto42, rmccue to use Simplepie XML processing rather than Atomparser, http://core.trac.wordpress.org/ticket/14525 ref: http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
-  this also fixes http://core.trac.wordpress.org/ticket/15560 
+  this also fixes http://core.trac.wordpress.org/ticket/15560
 * Change by Otto42 to use OAuth rather than AuthSub authentication, should make authentication more reliable
 * Fix by Andy from Workshopshed to load comments and nested comments correctly
 * Fix by Andy from Workshopshed to correctly pass the blogger start-index and max-results parameters to oAuth functions and to process more than one batch http://core.trac.wordpress.org/ticket/19096
