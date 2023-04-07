@@ -3,8 +3,8 @@ Contributors: wordpressdotorg, Otto42, Workshopshed, SergeyBiryukov, rmccue
 Donate link:
 Tags: importer, blogger
 Requires at least: 3.0
-Tested up to: 6.1
-Stable tag: 0.9.1
+Tested up to: 6.2
+Stable tag: 0.9.2
 License: GPLv2 or later
 
 Imports posts, images, comments, and categories (blogger tags) from a Blogger blog then migrates authors to WordPress users.
@@ -163,6 +163,9 @@ Action - import_done - This is run when the import finishes processing the recor
 Filter - blogger_importer_congrats - Passes the list of options shown to the user when the blog is complete, options can be added or removed.
 
 == Changelog ==
+
+= 0.9.2 =
+* Add support for WordPress 6.2
 
 = 0.9.1 =
 * Add support for WordPress 6.1
