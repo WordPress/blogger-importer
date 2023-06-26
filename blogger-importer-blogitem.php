@@ -3,15 +3,15 @@
 /**
  * Based on WP_SimplePieAtomPub_Item
  * Expect this to become part of core wordpress at some point.
- * See http://core.trac.wordpress.org/ticket/7652
+ * See https://core.trac.wordpress.org/ticket/7652
  * 
- * http://codex.wordpress.org/Geodata
+ * https://codex.wordpress.org/Geodata
  * 
  */
 
-define('SIMPLEPIE_NAMESPACE_ATOMPUB', 'http://purl.org/atom/app#');
-define('SIMPLEPIE_NAMESPACE_GEOTAG', 'http://www.georss.org/georss');
-define('SIMPLEPIE_NAMESPACE_THREAD','http://purl.org/syndication/thread/1.0');
+define('SIMPLEPIE_NAMESPACE_ATOMPUB', 'https://purl.org/atom/app#');
+define('SIMPLEPIE_NAMESPACE_GEOTAG', 'https://www.georss.org/georss');
+define('SIMPLEPIE_NAMESPACE_THREAD','https://purl.org/syndication/thread/1.0');
 
 /**
  * SimplePie Helper for AtomPub 
@@ -47,7 +47,7 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
             return $draft;
         }
 
-        //Tried using date functions from http://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
+        //Tried using date functions from https://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
         //but ended up with 1970s dates so returned to Otto's version which is much simplified
         function get_updated()
         {
@@ -68,9 +68,9 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
         }
 
         function get_geotags()
-        {//Return an array of geo tags see http://codex.wordpress.org/Geodata
+        {//Return an array of geo tags see https://codex.wordpress.org/Geodata
             //example source
-            //        <georss:featurename>Rådhuspladsen 3, 1550 Copenhagen, Denmark</georss:featurename>
+            //        <georss:featurename>RÃ¥dhuspladsen 3, 1550 Copenhagen, Denmark</georss:featurename>
             //        <georss:point>55.6760968 12.5683371</georss:point>
             
 
