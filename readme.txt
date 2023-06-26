@@ -88,7 +88,7 @@ The importer will attempt to download the a large version of the file if one is 
 
 = How do I know what images are skipped? =
 
-If you hover over the progress bar for images it will tell you how many images are skipped. To see the filenames of these images you will need to enable WordPress debugging to log to file. See http://codex.wordpress.org/Debugging_in_WordPress
+If you hover over the progress bar for images it will tell you how many images are skipped. To see the filenames of these images you will need to enable WordPress debugging to log to file. See https://codex.wordpress.org/Debugging_in_WordPress
 
 = What about future posts? =
 
@@ -128,19 +128,19 @@ The importer is designed to download the high resolution images where they are a
 
 == Reference ==
 
-* http://www.simplepie.org/
+* https://www.simplepie.org/
 
 The following were referenced for implementing the images and links
 
-* http://wordpress.org/extend/plugins/remote-images-grabber
-* http://notions.okuda.ca/wordpress-plugins/blogger-image-import/
-* http://wordpress.org/extend/plugins/cache-images/
-* http://wordpress.org/extend/plugins/tumblr-importer/
-* http://core.trac.wordpress.org/ticket/14525
-* http://wpengineer.com/1735/easier-better-solutions-to-get-pictures-on-your-posts/
-* http://www.velvetblues.com/web-development-blog/wordpress-plugin-update-urls/
-* http://wordpress.stackexchange.com/questions//media-sideload-image-file-name
-* http://wp.tutsplus.com/tutorials/plugins/a-guide-to-the-wordpress-http-api-the-basics/
+* https://wordpress.org/extend/plugins/remote-images-grabber
+* https://notions.okuda.ca/wordpress-plugins/blogger-image-import/
+* https://wordpress.org/extend/plugins/cache-images/
+* https://wordpress.org/extend/plugins/tumblr-importer/
+* https://core.trac.wordpress.org/ticket/14525
+* https://wpengineer.com/1735/easier-better-solutions-to-get-pictures-on-your-posts/
+* https://www.velvetblues.com/web-development-blog/wordpress-plugin-update-urls/
+* https://wordpress.stackexchange.com/questions//media-sideload-image-file-name
+* https://wp.tutsplus.com/tutorials/plugins/a-guide-to-the-wordpress-http-api-the-basics/
 
 == Known Issues ==
 
@@ -188,9 +188,9 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Re-incorporated the "congrats" function and provided a sensible list of what to do next
 * Add a geo_public flag to posts with geotags
 * Dropped _normalize_tag after confirming that it's handled by SimplePie
-* Added image handling http://core.trac.wordpress.org/ticket/4010
+* Added image handling https://core.trac.wordpress.org/ticket/4010
 * Added setting author on images
-* Added error handling in get_oauth_link() as suggested by daniel_henrique ref http://core.trac.wordpress.org/ticket/21163
+* Added error handling in get_oauth_link() as suggested by daniel_henrique ref https://core.trac.wordpress.org/ticket/21163
 * Added a check for OpenSSL as suggested by digitalsensus
 * Fixed issue with SimplePie santizer not getting set in WordPress 3.5
 * Added filter for the congrats function 'blogger_importer_congrats' so other plugins can add in new options
@@ -206,32 +206,32 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Stopped logging all the post and comment IDs in arrays and storing in option this improved the importing of very large blogs
 * Fixed issue with comment_author_IP notice
 * Code restructuring to use classes for blog objects
-* Changed AJAX calls to use technique described here http://codex.wordpress.org/AJAX_in_Plugins#Ajax_on_the_Administration_Side
+* Changed AJAX calls to use technique described here https://codex.wordpress.org/AJAX_in_Plugins#Ajax_on_the_Administration_Side
 * Added AdminURL to the greet function rather than hardcoded path
 * Defaulted to turn off post pingbacks
 * Fix to stop it counting pingbacks, issue reported by realdoublebee
 * Retrofitted Security enhancement from 0.6, nonce added to form buttons on main screen
 * Security enhancement, nonce added to form button on authors screen
 * Updated POT file
-* Greek Translation from Stergatou Eleni http://buddypress.org/community/members/lenasterg/
+* Greek Translation from Stergatou Eleni https://buddypress.org/community/members/lenasterg/
 
 = 0.6 =
 * Security enhancement, nonce added to form button on main screen
 
 = 0.5 =
-* Merged in fix by SergeyBiryukov http://core.trac.wordpress.org/ticket/16012
-* Merged in rmccue change to get_total_results to also use SimplePie from http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
-* Reviewed in rmccue's changes in http://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff issues with date handling functions so skipped those
+* Merged in fix by SergeyBiryukov https://core.trac.wordpress.org/ticket/16012
+* Merged in rmccue change to get_total_results to also use SimplePie from https://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
+* Reviewed in rmccue's changes in https://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff issues with date handling functions so skipped those
 * Moved SimplePie functions in  new class WP_SimplePie_Blog_Item incorporating get_draft_status and get_updated and convert date
 * Tested comments from source blog GMT-8, destination London (currently GMT-1), comment dates transferred correctly.
 * Fixed typo in oauth_get
 * Added screen_icon() to all pages
-* Added GeoTags as per spec on http://codex.wordpress.org/Geodata
-* Change by Otto42, rmccue to use Simplepie XML processing rather than Atomparser, http://core.trac.wordpress.org/ticket/14525 ref: http://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
-  this also fixes http://core.trac.wordpress.org/ticket/15560
+* Added GeoTags as per spec on https://codex.wordpress.org/Geodata
+* Change by Otto42, rmccue to use Simplepie XML processing rather than Atomparser, https://core.trac.wordpress.org/ticket/14525 ref: https://core.trac.wordpress.org/attachment/ticket/7652/7652-blogger.diff
+  this also fixes https://core.trac.wordpress.org/ticket/15560
 * Change by Otto42 to use OAuth rather than AuthSub authentication, should make authentication more reliable
 * Fix by Andy from Workshopshed to load comments and nested comments correctly
-* Fix by Andy from Workshopshed to correctly pass the blogger start-index and max-results parameters to oAuth functions and to process more than one batch http://core.trac.wordpress.org/ticket/19096
+* Fix by Andy from Workshopshed to correctly pass the blogger start-index and max-results parameters to oAuth functions and to process more than one batch https://core.trac.wordpress.org/ticket/19096
 * Fix by Andy from Workshopshed error about incorrect enqueuing of scripts also changed styles to work the same
 * Change by Andy from Workshopshed testing in debug mode and wrapped ajax return into a function to suppress debug messages
 * Fix by Andy from Workshopshed notices for undefined variables.
@@ -239,10 +239,10 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 * Fix by Andy from Workshopshed incorrectly checking for duplicates based on only the date and username, this gave false positives when large numbers of comments, particularly anonymous ones.
 
 = 0.4 =
-* Fix for tracking images being added by Blogger to non-authenticated feeds http://core.trac.wordpress.org/ticket/17623
+* Fix for tracking images being added by Blogger to non-authenticated feeds https://core.trac.wordpress.org/ticket/17623
 
 = 0.3 =
-* Bugfix for 403 Invalid AuthSub Token http://core.trac.wordpress.org/ticket/14629
+* Bugfix for 403 Invalid AuthSub Token https://core.trac.wordpress.org/ticket/14629
 
 = 0.1 =
 * Initial release
