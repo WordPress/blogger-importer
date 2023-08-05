@@ -115,7 +115,9 @@ class Blogger_Importer extends WP_Importer {
 
 		if (Blogger_Importer::IMPORT_IMG)
 		{
-			$this->process_images();
+            do {
+                $finished = $this->process_images();
+            } while(!$finished);
 		}
 
 		$this->process_links();
