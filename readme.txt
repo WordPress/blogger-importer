@@ -166,7 +166,6 @@ Filter - blogger_importer_congrats - Passes the list of options shown to the use
 
 = 0.9.3 =
 * Add support for WordPress 6.3
-* Add support for PHP 7.0
 * Update documentation URLs
 * Fix indentation
 
