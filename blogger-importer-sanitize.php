@@ -48,7 +48,7 @@ class Blogger_Importer_Sanitize extends SimplePie_Sanitize
     {
         //Simplified function
         $data = trim($data);
-        
+
         // Normalise tags (string replacement is case sensitive)
         $data = preg_replace_callback('|<(/?[A-Z]+)|', array(&$this, '_normalize_tag'), $data);
 
@@ -79,7 +79,7 @@ class Blogger_Importer_Sanitize extends SimplePie_Sanitize
 
         // Replace relative URLs
         $this->base = $base;
-        
+
         foreach ($this->replace_url_attributes as $element => $attributes)
         {
             $data = $this->replace_urls($data, $element, $attributes);
@@ -130,5 +130,3 @@ class Blogger_Importer_Sanitize extends SimplePie_Sanitize
 	}
 
 }
-
-?>

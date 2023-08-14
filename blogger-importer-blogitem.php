@@ -3,10 +3,10 @@
 /**
  * Based on WP_SimplePieAtomPub_Item
  * Expect this to become part of core wordpress at some point.
- * See http://core.trac.wordpress.org/ticket/7652
- * 
- * http://codex.wordpress.org/Geodata
- * 
+ * See https://core.trac.wordpress.org/ticket/7652
+ *
+ * https://codex.wordpress.org/Geodata
+ *
  */
 
 define('SIMPLEPIE_NAMESPACE_ATOMPUB', 'http://purl.org/atom/app#');
@@ -14,18 +14,18 @@ define('SIMPLEPIE_NAMESPACE_GEOTAG', 'http://www.georss.org/georss');
 define('SIMPLEPIE_NAMESPACE_THREAD','http://purl.org/syndication/thread/1.0');
 
 /**
- * SimplePie Helper for AtomPub 
- * 
- * @package WordPress 
- * @subpackage Publishing 
- * @since 3.1 
+ * SimplePie Helper for AtomPub
+ *
+ * @package WordPress
+ * @subpackage Publishing
+ * @since 3.1
  */
 if (!class_exists('WP_SimplePie_Blog_Item'))
 {
     class WP_SimplePie_Blog_Item extends SimplePie_Item
     {
         /**
-         * Constructor 
+         * Constructor
          */
         function __construct($feed, $data)
         {
@@ -33,9 +33,9 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
         }
 
         /**
-         * Get the status of the entry 
-         * 
-         * @return bool True if the item is a draft, false otherwise 
+         * Get the status of the entry
+         *
+         * @return bool True if the item is a draft, false otherwise
          */
         function get_draft_status()
         {
@@ -47,7 +47,7 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
             return $draft;
         }
 
-        //Tried using date functions from http://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
+        //Tried using date functions from https://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
         //but ended up with 1970s dates so returned to Otto's version which is much simplified
         function get_updated()
         {
@@ -70,33 +70,33 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
         function get_geotags()
         {//Return an array of geo tags see http://codex.wordpress.org/Geodata
             //example source
-            //        <georss:featurename>Rådhuspladsen 3, 1550 Copenhagen, Denmark</georss:featurename>
+            //        <georss:featurename>Rï¿½dhuspladsen 3, 1550 Copenhagen, Denmark</georss:featurename>
             //        <georss:point>55.6760968 12.5683371</georss:point>
-            
+
 
             $latlong = $this->get_item_tags(SIMPLEPIE_NAMESPACE_GEOTAG, 'point');
-            
+
             if (isset($latlong[0]['data'])) {
                 preg_match('/([0-9.-]+).+?([0-9.-]+)/', $latlong[0]['data'], $matches);
                 $lat=(float)$matches[1];
                 $long=(float)$matches[2];
             }
-            
+
             if (!isset($lat) |!isset($long)) {
                 return null; //Without lat long we can't have a valid location
             }
-                
+
             $address = $this->get_item_tags(SIMPLEPIE_NAMESPACE_GEOTAG, 'featurename');
             if (isset($address[0]['data']))
                 $geo_address =  $address[0]['data'];
             else
                 $geo_address = null;
-            
+
             $geo = array('geo_latitude' => $lat, 'geo_longitude' => $long, 'geo_address' => $geo_address );
-            
+
             return $geo;
         }
-            
+
         function convert_date($date)
         {
             preg_match('#([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.[0-9]+)?(Z|[\+|\-][0-9]{2,4}){0,1}#', $date, $date_bits);
@@ -115,10 +115,10 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
                 return $return[0]['data'];
             }
         }
-        
+
         //Prefiltered links
         function get_links($rel = 'alternate') {
-        
+
             $mylinks = array();
             foreach ($rel as $type)
             {
@@ -145,7 +145,7 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
             }
             return $mycats;
         }
-        
+
         //What is the source of this item e.g. a comment linked to a post
         //10/3/2014 Added error handling for where the comment links to a post that no longer exists on blogger.
         function get_source() {
@@ -164,5 +164,3 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
     }
 
 }
-
-?>

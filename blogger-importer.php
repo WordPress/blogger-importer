@@ -1,13 +1,13 @@
 <?php
 /*
 Plugin Name: Blogger Importer
-Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
+Plugin URI: https://wordpress.org/extend/plugins/blogger-importer/
 Description: Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.
 Author: wordpressdotorg
-Author URI: http://wordpress.org/
+Author URI: https://wordpress.org/
 Version: 0.9.2
 License: GPLv2
-License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Text Domain: blogger-importer
 Domain Path: /languages
 */
@@ -492,7 +492,7 @@ class Blogger_Importer extends WP_Importer {
 	* <a href="xxx" yyyy><img src="zzz" ></a> or <img src="zzz" >
 	* Ref: http://www.the-art-of-web.com/php/parse-links/
 	*        "<a\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/a>"
-	*      http://wordpress.org/extend/plugins/blogger-image-import/
+	*      https://wordpress.org/extend/plugins/blogger-image-import/
 	*        "<a[^>]+href\=([\"'`])(.*)\\1[^<]*?<img[^>]*src\=([\"'`])(.*)\\3[^>]*>"
 	*/
 	function get_images($content) {
@@ -624,7 +624,7 @@ class Blogger_Importer extends WP_Importer {
 	function import_image($post_id, $lowrez, $highrez, $description, $imgcount, $postcontent, $blogname, $author) {
 		/* Import a new image unless we specifically filter it out or if it has already been downloaded on another page.
 		Based on http://wordpress.stackexchange.com/questions//media-sideload-image-file-name and the tumblr-importer
-		Simple filename cleaning as characters such as +, % cause issues ref: http://wordpress.org/extend/plugins/uploadplus/
+		Simple filename cleaning as characters such as +, % cause issues ref: https://wordpress.org/extend/plugins/uploadplus/
 
 		It's processing links of a form similar to these as provided by the "get_images" function
 		<a href="myhighrezimage.jpg"><img src="mylowrezimage.jpg"></a>
@@ -749,7 +749,7 @@ class Blogger_Importer extends WP_Importer {
 			$lowrez));
 	}
 
-        function process_links() {
+    function process_links() {
 		//Update all of the links in the blog
 		global $wpdb;
 
