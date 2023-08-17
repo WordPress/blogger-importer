@@ -130,3 +130,5 @@ class Blogger_Importer_Sanitize extends SimplePie_Sanitize
 	}
 
 }
+
+?>

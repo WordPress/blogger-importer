@@ -3,9 +3,9 @@
 /**
  * Based on WP_SimplePieAtomPub_Item
  * Expect this to become part of core wordpress at some point.
- * See https://core.trac.wordpress.org/ticket/7652
+ * See http://core.trac.wordpress.org/ticket/7652
  *
- * https://codex.wordpress.org/Geodata
+ * http://codex.wordpress.org/Geodata
  *
  */
 
@@ -47,7 +47,7 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
             return $draft;
         }
 
-        //Tried using date functions from https://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
+        //Tried using date functions from http://core.trac.wordpress.org/attachment/ticket/7652/7652-separate.diff
         //but ended up with 1970s dates so returned to Otto's version which is much simplified
         function get_updated()
         {
@@ -164,3 +164,5 @@ if (!class_exists('WP_SimplePie_Blog_Item'))
     }
 
 }
+
+?>
