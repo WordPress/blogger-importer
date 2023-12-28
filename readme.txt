@@ -3,7 +3,7 @@ Contributors: wordpressdotorg, Otto42, Workshopshed, SergeyBiryukov, rmccue
 Donate link:
 Tags: importer, blogger
 Requires at least: 3.0
-Tested up to: 6.3
+Tested up to: 6.4.2
 Stable tag: 0.9.2
 License: GPLv2 or later
 
