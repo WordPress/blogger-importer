@@ -342,7 +342,12 @@ class Blogger_Importer extends WP_Importer {
 						$this->processed_authors[$old_id] = $user_id;
 					$this->author_mapping[$santized_old_login] = $user_id;
 				} else {
-					printf( __( 'Failed to create new user for %s. Their posts will be attributed to the current user.', 'blogger-importer' ), esc_html($this->authors[$old_login]['author_display_name']) );
+					if ( array_key_exists( $old_login, $this->authors ) ) {
+						printf( __( 'Failed to create new user for %s. Their posts will be attributed to the current user.', 'blogger-importer' ), esc_html( $this->authors[$old_login]['author_display_name'] ) );
+					} else {
+						printf( __( 'Failed to create new user. Their posts will be attributed to the current user.', 'blogger-importer' ) );
+					}
+
 					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
 						echo ' ' . $user_id->get_error_message();
 					echo '<br />';
