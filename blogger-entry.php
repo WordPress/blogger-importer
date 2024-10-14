@@ -108,6 +108,3 @@ if (!class_exists('BloggerEntry'))
         }
     }
 }
-
-
-?>
