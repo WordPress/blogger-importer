@@ -1,16 +1,28 @@
 <?php
 /**
- * A data object representing the data to be added into WordPress 
+ * A data object representing the data to be added into WordPress
  */
 
 if (!class_exists('BloggerEntry'))
 {
     class BloggerEntry
         {
-            var $links = array();
-            var $categories = array();
-            var $blogurl = '';
-            
+            public $links = array();
+            public $categories = array();
+            public $blogurl = '';
+            public $id;
+            public $published;
+            public $updated;
+            public $isDraft;
+            public $title;
+            public $content;
+            public $geotags;
+            public $bloggerauthor;
+            public $author;
+            public $old_permalink;
+            public $bookmark;
+            public $postreplies;
+
             function parselinks() {
                 foreach ($this->links as $link) {
                     // save the self link as meta
@@ -20,14 +32,14 @@ if (!class_exists('BloggerEntry'))
                         $parts = parse_url($link['href']);
                         $this->old_permalink = $parts['path'];
                     }
-    
+
                     // get the old URI for the page when available
                     if ($link['rel'] == 'alternate')
                     {
                         $parts = parse_url($link['href']);
                         $this->bookmark = $parts['path'];
                     }
-    
+
                     // save the replies feed link as meta (ignore the comment form one)
                     if ($link['rel'] == 'replies' && false === strpos($link['href'], '#comment-form'))
                     {
@@ -35,7 +47,7 @@ if (!class_exists('BloggerEntry'))
                     }
                 }
             }
-            
+
             function import() {
 
                 $post_date = $this->published;
@@ -53,7 +65,7 @@ if (!class_exists('BloggerEntry'))
                 $post_id = wp_insert_post($post);
                 if (is_wp_error($post_id))
                     return $post_id;
-		
+
                 wp_create_categories(array_map('addslashes', $this->categories), $post_id);
 
                 add_post_meta($post_id, 'blogger_blog', $this->blogurl, true);
@@ -63,7 +75,7 @@ if (!class_exists('BloggerEntry'))
                     add_post_meta($post_id, 'blogger_permalink', $this->bookmark, true);
 
                 add_post_meta($post_id, 'blogger_internal', $this->old_permalink, true);
-                
+
                 if (isset($this->geotags)) {
                     add_post_meta($post_id,'geo_latitude',$this->geotags['geo_latitude']);
                     add_post_meta($post_id,'geo_longitude',$this->geotags['geo_longitude']);
@@ -75,27 +87,24 @@ if (!class_exists('BloggerEntry'))
 
                 return $post_id;
         }
-        
-        
+
+
         function post_exists() {
             $p = $this->get_post_by_oldID($this->old_permalink);
 
             if ($p == 0 && isset($this->bookmark)) {
                 $p = $this->get_post_by_oldID($this->bookmark);
-            }         
+            }
             return $p;
         }
-        
+
         function get_post_by_oldID($oldID) {
             //Check to see if this post has been loaded already
             //Can we use get_posts for this?
             global $wpdb;
             $query = "SELECT post_id FROM $wpdb->postmeta m inner join $wpdb->posts p on p.ID = m.post_id where meta_key = 'blogger_internal' and meta_value = '%s' and p.post_type = 'post' LIMIT 0 , 1";
             $p = (int) $wpdb->get_var( $wpdb->prepare($query, $oldID) );
-            return $p;            
+            return $p;
         }
-    }          
+    }
 }
-
-
-?>

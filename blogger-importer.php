@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/blogger-importer/
 Description: Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.9.2
+Version: 0.9.3
 License: GPLv2
 License URI: http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Text Domain: blogger-importer
@@ -342,7 +342,12 @@ class Blogger_Importer extends WP_Importer {
 						$this->processed_authors[$old_id] = $user_id;
 					$this->author_mapping[$santized_old_login] = $user_id;
 				} else {
-					printf( __( 'Failed to create new user for %s. Their posts will be attributed to the current user.', 'blogger-importer' ), esc_html($this->authors[$old_login]['author_display_name']) );
+					if ( array_key_exists( $old_login, $this->authors ) ) {
+						printf( __( 'Failed to create new user for %s. Their posts will be attributed to the current user.', 'blogger-importer' ), esc_html( $this->authors[$old_login]['author_display_name'] ) );
+					} else {
+						printf( __( 'Failed to create new user. Their posts will be attributed to the current user.', 'blogger-importer' ) );
+					}
+
 					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
 						echo ' ' . $user_id->get_error_message();
 					echo '<br />';
